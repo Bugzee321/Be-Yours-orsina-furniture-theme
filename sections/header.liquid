@@ -891,6 +891,20 @@
     visibility: visible;
   }
   
+  /* 
+   * MOBILE CART DRAWER LAYOUT:
+   * ┌─────────────────────────────────┐
+   * │ Cart Items (Top - Expandable)   │
+   * │ • Product list (scrollable)     │
+   * │ ─────────────────────────────── │
+   * │ CHECKOUT BUTTONS (Static)       │
+   * ├─────────────────────────────────┤
+   * │ You May Also Like (Bottom-200px)│
+   * │ [Product] [Product] [Product]   │
+   * │ ← horizontal scroll →           │
+   * └─────────────────────────────────┘
+   */
+
   /* Cart Drawer Container - Fixed Mobile Layout */
   .cart-drawer {
     position: fixed;
@@ -1085,11 +1099,12 @@
     }
   }
 
-  /* Mobile: Good size for cards */
+  /* Mobile: Smaller for compact cards */
   @media screen and (max-width: 990px) {
     .recommended-product-image {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
+      flex-shrink: 0;
     }
   }
   
@@ -1099,6 +1114,18 @@
     flex-direction: column;
     gap: 6px;
     min-width: 0;
+  }
+
+  /* Mobile: Adjust for compact card layout */
+  @media screen and (max-width: 990px) {
+    .recommended-product-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      justify-content: space-between;
+      align-items: center;
+    }
   }
   
   .recommended-product-title {
@@ -1113,12 +1140,14 @@
     overflow: hidden;
   }
 
-  /* Mobile: Better readability */
+  /* Mobile: Smaller text for compact cards */
   @media screen and (max-width: 990px) {
     .recommended-product-title {
-      font-size: 12px;
+      font-size: 10px;
+      line-height: 1.2;
       -webkit-line-clamp: 2;
       text-align: center;
+      flex: 1;
     }
   }
   
@@ -1137,7 +1166,8 @@
     .recommended-product-price {
       justify-content: center;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
+      flex-shrink: 0;
     }
   }
   
@@ -1147,10 +1177,10 @@
     font-weight: 500;
   }
 
-  /* Mobile: Good size for readability */
+  /* Mobile: Smaller price for compact cards */
   @media screen and (max-width: 990px) {
     .recommended-price-value {
-      font-size: 11px;
+      font-size: 10px;
     }
   }
   
@@ -1169,12 +1199,14 @@
     white-space: nowrap;
   }
 
-  /* Mobile: Proper size button */
+  /* Mobile: Compact button for cards */
   @media screen and (max-width: 990px) {
     .recommended-add-btn {
-      padding: 5px 10px;
-      font-size: 9px;
+      padding: 4px 6px;
+      font-size: 8px;
       letter-spacing: 0.5px;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
   }
   
@@ -1721,7 +1753,7 @@
     }
   }
 
-  /* Show cart added feedback */
+  /* Show cart added feedback - DISABLED (User doesn't want notifications)
   .cart-added-feedback {
     position: fixed;
     top: 20px;
@@ -1741,6 +1773,7 @@
   .cart-added-feedback.show {
     transform: translateX(0);
   }
+  */
 
   /* ============ ENHANCED CART DRAWER STYLES END ============ */
   
@@ -2296,10 +2329,11 @@
   </div>
 </div>
 
-<!-- Cart Added Feedback -->
+<!-- Cart Added Feedback - REMOVED (User doesn't want green notifications)
 <div class="cart-added-feedback" id="cart-added-feedback">
   Product added to cart!
 </div>
+-->
 
 <!-- Search Modal -->
 <div class="search-modal" id="search-modal" onclick="closeSearchModal(event)">
@@ -2468,18 +2502,18 @@ window.triggerCartDrawerOpen = function() {
   openCartDrawer();
 };
 
-// Show feedback message
-function showCartAddedFeedback(message = 'Product added to cart!') {
-  const feedback = document.getElementById('cart-added-feedback');
-  if (feedback) {
-    feedback.textContent = message;
-    feedback.classList.add('show');
-    
-    setTimeout(() => {
-      feedback.classList.remove('show');
-    }, 3000);
-  }
-}
+// Show feedback message - DISABLED (User doesn't want green notifications)
+// function showCartAddedFeedback(message = 'Product added to cart!') {
+//   const feedback = document.getElementById('cart-added-feedback');
+//   if (feedback) {
+//     feedback.textContent = message;
+//     feedback.classList.add('show');
+//     
+//     setTimeout(() => {
+//       feedback.classList.remove('show');
+//     }, 3000);
+//   }
+// }
 
 // Open Cart Drawer with enhanced auto-opening
 function openCartDrawer() {
@@ -2510,7 +2544,7 @@ function closeCartDrawer() {
   }
 }
 
-// Enhanced Load Recommendations - Fixed API and fallback logic
+// Enhanced Load Recommendations - Fixed Collection Products Logic
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2522,8 +2556,33 @@ async function loadRecommendations() {
   
   let products = [];
   
-  // Try to get related products for the last added product
-  if (lastAddedProductHandle) {
+  // First: Try to get from manually selected collection
+  try {
+    const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
+    if (collectionHandle && collectionHandle !== '') {
+      const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=8`);
+      if (collectionResponse.ok) {
+        const collectionData = await collectionResponse.json();
+        if (collectionData.products && collectionData.products.length > 0) {
+          products = collectionData.products.slice(0, 4).map(product => ({
+            id: product.id,
+            title: product.title,
+            handle: product.handle,
+            price: product.variants[0].price * 100,
+            compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+            image: product.images[0] || '',
+            url: `/products/${product.handle}`,
+            variant_id: product.variants[0].id
+          }));
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Could not fetch from collection, trying related products');
+  }
+  
+  // Second: Try to get related products for the last added product (if collection didn't work)
+  if (products.length === 0 && lastAddedProductHandle) {
     try {
       // Use product handle to get product ID first
       const productResponse = await fetch(`/products/${lastAddedProductHandle}.js`);
@@ -2550,46 +2609,20 @@ async function loadRecommendations() {
         }
       }
     } catch (error) {
-      console.log('Could not fetch related products, falling back to manual/default');
-    }
-  }
-  
-  // Fallback to manual collection if no related products found
-  if (products.length === 0) {
-    try {
-      // Try to fetch from the manually selected collection
-      const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
-      if (collectionHandle && collectionHandle !== '') {
-        const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=4`);
-        if (collectionResponse.ok) {
-          const collectionData = await collectionResponse.json();
-          if (collectionData.products && collectionData.products.length > 0) {
-            products = collectionData.products.slice(0, 4).map(product => ({
-              id: product.id,
-              title: product.title,
-              handle: product.handle,
-              price: product.variants[0].price * 100,
-              compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-              image: product.images[0] || '',
-              url: `/products/${product.handle}`,
-              variant_id: product.variants[0].id
-            }));
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Could not fetch from manual collection, trying general products');
+      console.log('Could not fetch related products, trying general products');
     }
   }
   
   // Final fallback: fetch from all products
   if (products.length === 0) {
     try {
-      const response = await fetch('/collections/all/products.json?limit=4');
+      const response = await fetch('/collections/all/products.json?limit=8');
       if (response.ok) {
         const data = await response.json();
         if (data.products && data.products.length > 0) {
-          products = data.products.slice(0, 4).map(product => ({
+          // Randomly shuffle and pick 4 products
+          const shuffled = data.products.sort(() => 0.5 - Math.random());
+          products = shuffled.slice(0, 4).map(product => ({
             id: product.id,
             title: product.title,
             handle: product.handle,
@@ -2609,7 +2642,7 @@ async function loadRecommendations() {
   if (products.length > 0) {
     renderRecommendedProducts(products, container);
   } else {
-    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px; font-size: 12px;">Loading recommendations...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px; font-size: 12px;">Select a collection in theme settings</p>';
   }
 }
 
@@ -2666,7 +2699,7 @@ function renderRecommendedProducts(products, container) {
   container.innerHTML = html;
 }
 
-// Enhanced Quick add to cart
+// Enhanced Quick add to cart - No green notification, just cart update
 async function quickAddToCart(variantId, button) {
   try {
     const originalText = button.textContent;
@@ -2689,10 +2722,7 @@ async function quickAddToCart(variantId, button) {
       button.classList.remove('loading');
       button.classList.add('added');
       
-      // Show feedback
-      showCartAddedFeedback('Product added to cart!');
-      
-      // Update cart count in header
+      // Update cart count in header - no green notification
       updateCartCount();
       
       setTimeout(() => {
@@ -2843,7 +2873,7 @@ function formatMoney(cents) {
   }).format(amount);
 }
 
-// Enhanced Update Item Quantity
+// Enhanced Update Item Quantity - No notifications
 async function updateQuantity(key, newQuantity) {
   if (newQuantity < 0) return;
   
@@ -2871,17 +2901,13 @@ async function updateQuantity(key, newQuantity) {
       renderCartDrawer();
       updateCartCount();
       
-      // Show feedback for quantity changes
-      if (newQuantity === 0) {
-        showCartAddedFeedback('Item removed from cart');
-      } else {
-        showCartAddedFeedback(`Quantity updated to ${newQuantity}`);
-      }
+      // No green notifications - just silent update
+      
     }
     
   } catch (error) {
     console.error('Error updating quantity:', error);
-    showCartAddedFeedback('Error updating quantity');
+    // No error notifications either
   }
 }
 
@@ -2897,7 +2923,7 @@ async function removeCartItem(key) {
   }, 300);
 }
 
-// Enhanced Auto-open cart drawer when product is added
+// Enhanced Auto-open cart drawer when product is added - No notifications
 function autoOpenCartDrawer(productHandle = null) {
   lastAddedProductHandle = productHandle;
   
@@ -2907,10 +2933,10 @@ function autoOpenCartDrawer(productHandle = null) {
   }, 100);
 }
 
-// Global function to be called from product forms
+// Global function to be called from product forms - No notifications
 window.productAddedToCart = function(productHandle = null) {
   autoOpenCartDrawer(productHandle);
-  showCartAddedFeedback('Product added to cart!');
+  // No green notification - just cart update
 };
 
 // ============ ENHANCED CART DRAWER JAVASCRIPT END ============
@@ -3130,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Enhanced: Handle add to cart with automatic drawer opening
+  // Enhanced: Handle add to cart with automatic drawer opening - No notifications
   const addToCartForms = document.querySelectorAll('form[action*="/cart/add"]');
   addToCartForms.forEach(form => {
     form.addEventListener('submit', async function(e) {
@@ -3174,8 +3200,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // Auto-open cart drawer
           autoOpenCartDrawer(productHandle);
           
-          // Show success feedback
-          showCartAddedFeedback('Product added to cart!');
+          // No green notification - just cart update
           
         } else {
           throw new Error('Failed to add to cart');
@@ -3183,7 +3208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
       } catch (error) {
         console.error('Error adding to cart:', error);
-        showCartAddedFeedback('Error adding to cart. Please try again.');
+        // No error notifications
       } finally {
         if (submitButton) {
           setTimeout(() => {
@@ -3195,11 +3220,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Enhanced: Listen for custom cart events
+  // Enhanced: Listen for custom cart events - No notifications
   document.addEventListener('cart:item-added', function(event) {
     const productHandle = event.detail?.productHandle;
     autoOpenCartDrawer(productHandle);
-    showCartAddedFeedback('Product added to cart!');
+    // No green notification
   });
   
   // ESC key to close drawer and modals
@@ -3234,7 +3259,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ============ GLOBAL CART INTEGRATION FUNCTIONS ============
 
-// Function to be called from any product page or form
+// Function to be called from any product page or form - No notifications
 window.addToCartAndOpen = async function(variantId, quantity = 1, productHandle = null) {
   try {
     const formData = new FormData();
@@ -3249,13 +3274,13 @@ window.addToCartAndOpen = async function(variantId, quantity = 1, productHandle 
     if (response.ok) {
       lastAddedProductHandle = productHandle;
       autoOpenCartDrawer(productHandle);
-      showCartAddedFeedback('Product added to cart!');
+      // No green notification - just cart update
       return true;
     }
     return false;
   } catch (error) {
     console.error('Error adding to cart:', error);
-    showCartAddedFeedback('Error adding to cart');
+    // No error notification
     return false;
   }
 };
@@ -3407,8 +3432,8 @@ window.isCartDrawerOpen = function() {
     {
       "type": "collection",
       "id": "recommended_collection",
-      "label": "Fallback Recommended Products Collection",
-      "info": "This collection will be used if no related products are found for the added item"
+      "label": "You May Also Like Collection",
+      "info": "Select collection for recommended products. This will be the PRIMARY source for recommendations in cart drawer."
     },
     {
       "type": "text",
