@@ -1356,7 +1356,7 @@
   .cart-empty-state {
     text-align: center;
     padding: 60px 20px;
-   
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1757,7 +1757,7 @@
   .empty-cart-menu {
     padding: 20px 0;
     max-height: 400px;
-    
+    overflow-y: auto;
   }
   
   .empty-cart-menu-title {
@@ -2690,7 +2690,7 @@ function closeCartDrawer() {
   }
 }
 
-// Enhanced Load Recommendations - 30+ Products with Better Fallbacks
+// Enhanced Load Recommendations - Last 2 Words Search + Collections + 30+ Products
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2703,9 +2703,77 @@ async function loadRecommendations() {
   let products = [];
   let targetCount = 30; // Target at least 30 products
   
-  // NEW: Get collections from first 2 cart items only (if cart has items)
-  let cartCollections = [];
+  // NEW: Extract last 2 words from cart product titles for search
+  let searchTerms = [];
   if (cartData && cartData.items && cartData.items.length > 0) {
+    cartData.items.forEach(item => {
+      if (item.product_title) {
+        // Extract last 2 words from product title
+        const words = item.product_title.trim().split(/\s+/);
+        if (words.length >= 2) {
+          const lastTwoWords = words.slice(-2).join(' ');
+          searchTerms.push(lastTwoWords);
+        }
+      }
+    });
+    
+    // Remove duplicates and get unique search terms
+    searchTerms = [...new Set(searchTerms)];
+    console.log('Search terms from cart products (last 2 words):', searchTerms);
+  }
+  
+  // First: Try to get products based on last 2 words search
+  if (searchTerms.length > 0) {
+    try {
+      const searchPromises = searchTerms.slice(0, 3).map(async (searchTerm) => {
+        try {
+          // Use Shopify search to find products with similar titles
+          const searchResponse = await fetch(`/search?q=${encodeURIComponent(searchTerm)}&type=product&format=json`);
+          if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+            return searchData.products || [];
+          }
+        } catch (error) {
+          console.log(`Could not search for term: ${searchTerm}`);
+        }
+        return [];
+      });
+      
+      const searchResults = await Promise.all(searchPromises);
+      const allSearchProducts = searchResults.flat();
+      
+      // Remove duplicates and products already in cart
+      const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+      const uniqueSearchProducts = allSearchProducts.filter((product, index, self) => 
+        index === self.findIndex(p => p.id === product.id) && 
+        !cartProductIds.includes(product.id)
+      );
+      
+      if (uniqueSearchProducts.length > 0) {
+        // Randomly shuffle and pick products
+        const shuffled = uniqueSearchProducts.sort(() => 0.5 - Math.random());
+        products = shuffled.slice(0, Math.min(15, uniqueSearchProducts.length)).map(product => ({
+          id: product.id,
+          title: product.title,
+          handle: product.handle,
+          price: product.variants[0].price * 100,
+          compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+          image: product.images[0] || '',
+          url: `/products/${product.handle}`,
+          variant_id: product.variants[0].id
+        }));
+        
+        console.log('Found search-based recommendations:', products.length);
+      }
+      
+    } catch (error) {
+      console.log('Error fetching search-based products:', error);
+    }
+  }
+  
+  // Second: Get collections from first 2 cart items (if we need more products)
+  let cartCollections = [];
+  if (products.length < targetCount && cartData && cartData.items && cartData.items.length > 0) {
     try {
       // Take only first 2 products from cart
       const firstTwoItems = cartData.items.slice(0, 2);
@@ -2739,13 +2807,13 @@ async function loadRecommendations() {
     }
   }
   
-  // First: Try to get products from collections of first 2 cart items (if cart has items)
-  if (cartCollections.length > 0) {
+  // Third: Try to get products from collections of first 2 cart items (if we need more)
+  if (products.length < targetCount && cartCollections.length > 0) {
     try {
       // Get products from each collection with higher limits
       const collectionPromises = cartCollections.map(async (collectionHandle) => {
         try {
-          const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=50`);
+          const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=30`);
           if (collectionResponse.ok) {
             const collectionData = await collectionResponse.json();
             return collectionData.products || [];
@@ -2759,17 +2827,19 @@ async function loadRecommendations() {
       const collectionProducts = await Promise.all(collectionPromises);
       const allCollectionProducts = collectionProducts.flat();
       
-      // Remove duplicates and products already in cart
+      // Remove duplicates and products already in cart and already selected
       const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+      const existingProductIds = products.map(p => p.id);
       const uniqueCollectionProducts = allCollectionProducts.filter((product, index, self) => 
         index === self.findIndex(p => p.id === product.id) && 
-        !cartProductIds.includes(product.id)
+        !cartProductIds.includes(product.id) &&
+        !existingProductIds.includes(product.id)
       );
       
       if (uniqueCollectionProducts.length > 0) {
         // Randomly shuffle and pick more products
         const shuffled = uniqueCollectionProducts.sort(() => 0.5 - Math.random());
-        products = shuffled.slice(0, Math.min(targetCount, uniqueCollectionProducts.length)).map(product => ({
+        const additionalProducts = shuffled.slice(0, targetCount - products.length).map(product => ({
           id: product.id,
           title: product.title,
           handle: product.handle,
@@ -2780,7 +2850,8 @@ async function loadRecommendations() {
           variant_id: product.variants[0].id
         }));
         
-        console.log('Found collection-based recommendations:', products.length);
+        products = [...products, ...additionalProducts];
+        console.log('Added collection-based recommendations, total:', products.length);
       }
       
     } catch (error) {
@@ -2788,7 +2859,7 @@ async function loadRecommendations() {
     }
   }
   
-  // Second: Try to get from manually selected collection (if not enough products or no cart items)
+  // Fourth: Try to get from manually selected collection (if we need more products)
   if (products.length < targetCount) {
     try {
       const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
@@ -2824,7 +2895,7 @@ async function loadRecommendations() {
     }
   }
   
-  // Third: Try to get related products for the last added product (if still not enough)
+  // Fifth: Try to get related products for the last added product (if still not enough)
   if (products.length < targetCount && lastAddedProductHandle) {
     try {
       const productResponse = await fetch(`/products/${lastAddedProductHandle}.js`);
@@ -2899,6 +2970,7 @@ async function loadRecommendations() {
   }
   
   console.log(`Final recommendations count: ${products.length}`);
+  console.log('Recommendation sources used: Last 2 words search → Collections → Manual collection → Related products → All products');
   
   if (products.length > 0) {
     renderRecommendedProducts(products, container);
