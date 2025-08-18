@@ -3041,7 +3041,6 @@ function renderCartDrawer() {
   if (cartData.item_count === 0) {
     const showEmptyMenu = '{{ section.settings.show_empty_cart_menu }}' === 'true';
     const emptyMenuType = '{{ section.settings.empty_cart_menu_type }}';
-    const hasEmptyMenu = '{{ section.settings.empty_cart_menu.handle }}' !== '';
     
     let emptyCartHTML = `
       <div class="cart-empty-state">
@@ -3052,14 +3051,14 @@ function renderCartDrawer() {
         <button class="continue-shopping-btn" onclick="closeCartDrawer()">Continue Shopping</button>
     `;
     
-    // Add menu only if enabled and menu is selected
-    if (showEmptyMenu && hasEmptyMenu) {
+    // Add menu if enabled
+    if (showEmptyMenu) {
       if (emptyMenuType === 'toggle') {
         emptyCartHTML += `
           <div class="empty-cart-toggle">
             <button class="empty-cart-toggle-btn" onclick="toggleEmptyCartMenu(this)">
-              <span>Browse Collections</span>
-              <span style="transition: transform 0.3s ease;">▼</span>
+              <span>Browse Menu</span>
+              <span style="transition: transform 0.2s ease;">▼</span>
             </button>
           </div>
           <div class="empty-cart-menu" id="empty-cart-menu" style="display: none;">
@@ -3073,14 +3072,6 @@ function renderCartDrawer() {
           </div>
         `;
       }
-    } else if (showEmptyMenu && !hasEmptyMenu) {
-      // Show message to configure menu
-      emptyCartHTML += `
-        <div class="empty-cart-warning">
-          <p>⚠️ Empty Cart Menu Not Configured</p>
-          <small>Please select a menu in theme settings:<br><strong>"Empty Cart Menu (Manual Selection)"</strong></small>
-        </div>
-      `;
     }
     
     emptyCartHTML += `</div>`;
@@ -3152,47 +3143,33 @@ function renderCartDrawer() {
   loadRecommendations();
 }
 
-// Generate Empty Cart Menu - Only Manual Selection
+// Generate Empty Cart Menu - Manual Selection with Main Menu Fallback
 function generateEmptyCartMenu() {
   const emptyCartTitle = '{{ section.settings.empty_cart_menu_title }}' || 'Browse Collections';
   
   let menuHTML = `<div class="empty-cart-menu-title">${emptyCartTitle}</div><div class="empty-cart-menu-items">`;
   
-  // Use ONLY manually selected menu (no fallback to main menu)
+  // Use manually selected menu, fallback to main menu
   const menuLinks = {% if section.settings.empty_cart_menu != blank %}
     {{ section.settings.empty_cart_menu.links | json }}
   {% else %}
-    null
+    {{ section.settings.menu.links | json }}
   {% endif %};
   
   if (menuLinks && menuLinks.length > 0) {
     menuLinks.forEach(link => {
-      // Check if it's a collection with image
-      const hasImage = link.object && link.object.image;
-      const isCollection = link.object && link.object.type === 'collection';
-      const itemCount = link.object && link.object.products_count ? ` (${link.object.products_count})` : '';
-      
+      // Simple button design - just title, no icons or subtitles
       menuHTML += `
         <a href="${link.url}" class="empty-cart-menu-item" onclick="closeCartDrawer()">
-          <div class="empty-cart-menu-icon ${hasImage ? 'has-image' : ''}">
-            ${hasImage ? 
-              `<img src="${link.object.image.src}?width=40" alt="${link.title}" loading="lazy">` :
-              (isCollection ? '🏷️' : '📂')
-            }
-          </div>
-          <div class="empty-cart-menu-info">
-            <div class="empty-cart-menu-title-item">${link.title}</div>
-            <div class="empty-cart-menu-subtitle">${isCollection ? `Collection${itemCount}` : 'Page'}</div>
-          </div>
-          <div class="empty-cart-menu-arrow">→</div>
+          ${link.title}
         </a>
       `;
     });
   } else {
     menuHTML += `
       <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
-        <p>📂 No menu configured</p>
-        <small>Please select a menu in theme settings:<br><strong>"Empty Cart Menu (Manual Selection)"</strong></small>
+        <p>📂 No menu available</p>
+        <small>Please check menu configuration in theme settings</small>
       </div>
     `;
   }
@@ -3211,11 +3188,6 @@ window.toggleEmptyCartMenu = function(button) {
     button.classList.add('active');
     arrow.style.transform = 'rotate(180deg)';
     arrow.textContent = '▲';
-    
-    // Smooth scroll animation
-    setTimeout(() => {
-      menu.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
   } else {
     menu.style.display = 'none';
     button.classList.remove('active');
@@ -3806,22 +3778,9 @@ window.isCartDrawerOpen = function() {
     {
       "type": "checkbox",
       "id": "show_empty_cart_menu",
-      "label": "Show Navigation Menu When Cart is Empty",
-      "info": "Display a menu in empty cart to help users browse collections and pages",
+      "label": "Show Menu When Cart is Empty",
+      "info": "Display navigation menu in empty cart to help users browse",
       "default": true
-    },
-    {
-      "type": "link_list",
-      "id": "empty_cart_menu",
-      "label": "Empty Cart Menu (Manual Selection)",
-      "info": "REQUIRED: Select which menu to show when cart is empty. Create a custom menu for best results."
-    },
-    {
-      "type": "text",
-      "id": "empty_cart_menu_title",
-      "label": "Empty Cart Menu Title",
-      "default": "Browse Collections",
-      "info": "Title to show above the empty cart menu"
     },
     {
       "type": "select",
@@ -3838,7 +3797,20 @@ window.isCartDrawerOpen = function() {
         }
       ],
       "default": "toggle",
-      "info": "How to display the menu: as a clickable button or always visible"
+      "info": "How to display the menu"
+    },
+    {
+      "type": "link_list",
+      "id": "empty_cart_menu",
+      "label": "Custom Empty Cart Menu (Optional)",
+      "info": "Select a custom menu for empty cart. If not selected, main menu will be used."
+    },
+    {
+      "type": "text",
+      "id": "empty_cart_menu_title",
+      "label": "Menu Title",
+      "default": "Browse Menu",
+      "info": "Title to show above the menu"
     },
     {
       "type": "header",
