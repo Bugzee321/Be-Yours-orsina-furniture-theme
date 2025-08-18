@@ -1753,28 +1753,6 @@
     }
   }
 
-  /* Show cart added feedback - DISABLED (User doesn't want notifications)
-  .cart-added-feedback {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #22C55E;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    z-index: 100000;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-
-  .cart-added-feedback.show {
-    transform: translateX(0);
-  }
-  */
-
   /* ============ ENHANCED CART DRAWER STYLES END ============ */
   
   /* RESPONSIVE BREAKPOINTS - MOBILE LOGO CENTER & HIDE SEARCH */
@@ -2329,12 +2307,6 @@
   </div>
 </div>
 
-<!-- Cart Added Feedback - REMOVED (User doesn't want green notifications)
-<div class="cart-added-feedback" id="cart-added-feedback">
-  Product added to cart!
-</div>
--->
-
 <!-- Search Modal -->
 <div class="search-modal" id="search-modal" onclick="closeSearchModal(event)">
   <div class="search-modal-content" onclick="event.stopPropagation()">
@@ -2502,19 +2474,6 @@ window.triggerCartDrawerOpen = function() {
   openCartDrawer();
 };
 
-// Show feedback message - DISABLED (User doesn't want green notifications)
-// function showCartAddedFeedback(message = 'Product added to cart!') {
-//   const feedback = document.getElementById('cart-added-feedback');
-//   if (feedback) {
-//     feedback.textContent = message;
-//     feedback.classList.add('show');
-//     
-//     setTimeout(() => {
-//       feedback.classList.remove('show');
-//     }, 3000);
-//   }
-// }
-
 // Open Cart Drawer with enhanced auto-opening
 function openCartDrawer() {
   const drawer = document.getElementById('cart-drawer');
@@ -2543,6 +2502,7 @@ function closeCartDrawer() {
     cartDrawerOpen = false;
   }
 }
+
 // Enhanced Load Recommendations - Collection-based Logic for First 2 Cart Items
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
@@ -3004,14 +2964,10 @@ async function updateQuantity(key, newQuantity) {
       cartData = await response.json();
       renderCartDrawer();
       updateCartCount();
-      
-      // No green notifications - just silent update
-      
     }
     
   } catch (error) {
     console.error('Error updating quantity:', error);
-    // No error notifications either
   }
 }
 
@@ -3040,7 +2996,6 @@ function autoOpenCartDrawer(productHandle = null) {
 // Global function to be called from product forms - No notifications
 window.productAddedToCart = function(productHandle = null) {
   autoOpenCartDrawer(productHandle);
-  // No green notification - just cart update
 };
 
 // ============ ENHANCED CART DRAWER JAVASCRIPT END ============
@@ -3304,15 +3259,12 @@ document.addEventListener('DOMContentLoaded', function() {
           // Auto-open cart drawer
           autoOpenCartDrawer(productHandle);
           
-          // No green notification - just cart update
-          
         } else {
           throw new Error('Failed to add to cart');
         }
         
       } catch (error) {
         console.error('Error adding to cart:', error);
-        // No error notifications
       } finally {
         if (submitButton) {
           setTimeout(() => {
@@ -3328,7 +3280,6 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('cart:item-added', function(event) {
     const productHandle = event.detail?.productHandle;
     autoOpenCartDrawer(productHandle);
-    // No green notification
   });
   
   // ESC key to close drawer and modals
@@ -3378,13 +3329,11 @@ window.addToCartAndOpen = async function(variantId, quantity = 1, productHandle 
     if (response.ok) {
       lastAddedProductHandle = productHandle;
       autoOpenCartDrawer(productHandle);
-      // No green notification - just cart update
       return true;
     }
     return false;
   } catch (error) {
     console.error('Error adding to cart:', error);
-    // No error notification
     return false;
   }
 };
@@ -3470,16 +3419,6 @@ window.isCartDrawerOpen = function() {
     }
   }
   customElements.define('sticky-header', StickyHeader);
-
-
-
-
-
-
-
-
- 
-  
 {% endjavascript %}
 
 {% schema %}
