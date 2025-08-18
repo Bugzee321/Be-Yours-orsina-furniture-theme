@@ -1356,7 +1356,7 @@
   .cart-empty-state {
     text-align: center;
     padding: 60px 20px;
-    display: flex;
+    {% comment %} display: flex; {% endcomment %}
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1757,7 +1757,7 @@
   .empty-cart-menu {
     padding: 20px 0;
     max-height: 400px;
-    overflow-y: auto;
+    overflow-y: hidden;
   }
   
   .empty-cart-menu-title {
