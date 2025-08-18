@@ -2544,7 +2544,7 @@ function closeCartDrawer() {
   }
 }
 
-// Enhanced Load Recommendations - Fixed Collection Products Logic
+// Enhanced Load Recommendations - Tags-based Logic for Cart Items
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2556,32 +2556,117 @@ async function loadRecommendations() {
   
   let products = [];
   
-  // First: Try to get from manually selected collection
-  try {
-    const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
-    if (collectionHandle && collectionHandle !== '') {
-      const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=8`);
-      if (collectionResponse.ok) {
-        const collectionData = await collectionResponse.json();
-        if (collectionData.products && collectionData.products.length > 0) {
-          products = collectionData.products.slice(0, 100).map(product => ({
-            id: product.id,
-            title: product.title,
-            handle: product.handle,
-            price: product.variants[0].price * 100,
-            compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-            image: product.images[0] || '',
-            url: `/products/${product.handle}`,
-            variant_id: product.variants[0].id
-          }));
+  // NEW: Get tags from cart items for tag-based recommendations
+  let cartTags = [];
+  if (cartData && cartData.items && cartData.items.length > 0) {
+    try {
+      // Collect all unique tags from cart items
+      const tagPromises = cartData.items.map(async (item) => {
+        try {
+          const productResponse = await fetch(`/products/${item.handle}.js`);
+          if (productResponse.ok) {
+            const productData = await productResponse.json();
+            return productData.tags || [];
+          }
+        } catch (error) {
+          console.log(`Could not fetch tags for product: ${item.handle}`);
         }
-      }
+        return [];
+      });
+      
+      const allTagArrays = await Promise.all(tagPromises);
+      cartTags = [...new Set(allTagArrays.flat())]; // Get unique tags
+      
+      console.log('Cart items tags:', cartTags);
+      
+    } catch (error) {
+      console.log('Error collecting cart tags:', error);
     }
-  } catch (error) {
-    console.log('Could not fetch from collection, trying related products');
   }
   
-  // Second: Try to get related products for the last added product (if collection didn't work)
+  // First: Try to get products based on cart item tags
+  if (cartTags.length > 0) {
+    try {
+      // Search for products with matching tags
+      const tagSearchPromises = cartTags.slice(0, 5).map(async (tag) => {
+        try {
+          const searchResponse = await fetch(`/collections/all/products.json?limit=50&tag=${encodeURIComponent(tag)}`);
+          if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+            return searchData.products || [];
+          }
+        } catch (error) {
+          console.log(`Could not search for tag: ${tag}`);
+        }
+        return [];
+      });
+      
+      const tagBasedProducts = await Promise.all(tagSearchPromises);
+      const allTagProducts = tagBasedProducts.flat();
+      
+      // Remove duplicates and products already in cart
+      const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+      const uniqueTagProducts = allTagProducts.filter((product, index, self) => 
+        index === self.findIndex(p => p.id === product.id) && 
+        !cartProductIds.includes(product.id)
+      );
+      
+      if (uniqueTagProducts.length > 0) {
+        // Randomly shuffle and pick products
+        const shuffled = uniqueTagProducts.sort(() => 0.5 - Math.random());
+        products = shuffled.slice(0, 8).map(product => ({
+          id: product.id,
+          title: product.title,
+          handle: product.handle,
+          price: product.variants[0].price * 100,
+          compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+          image: product.images[0] || '',
+          url: `/products/${product.handle}`,
+          variant_id: product.variants[0].id
+        }));
+        
+        console.log('Found tag-based recommendations:', products.length);
+      }
+      
+    } catch (error) {
+      console.log('Error fetching tag-based products:', error);
+    }
+  }
+  
+  // Second: Try to get from manually selected collection (if no tag-based products found)
+  if (products.length === 0) {
+    try {
+      const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
+      if (collectionHandle && collectionHandle !== '') {
+        const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=8`);
+        if (collectionResponse.ok) {
+          const collectionData = await collectionResponse.json();
+          if (collectionData.products && collectionData.products.length > 0) {
+            // Filter out products already in cart
+            const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+            const filteredProducts = collectionData.products.filter(product => 
+              !cartProductIds.includes(product.id)
+            );
+            
+            products = filteredProducts.slice(0, 8).map(product => ({
+              id: product.id,
+              title: product.title,
+              handle: product.handle,
+              price: product.variants[0].price * 100,
+              compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+              image: product.images[0] || '',
+              url: `/products/${product.handle}`,
+              variant_id: product.variants[0].id
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Could not fetch from collection, trying related products');
+    }
+  }
+  
+  // Third: Try to get related products for the last added product (if collection didn't work)
   if (products.length === 0 && lastAddedProductHandle) {
     try {
       // Use product handle to get product ID first
@@ -2595,7 +2680,13 @@ async function loadRecommendations() {
         if (relatedResponse.ok) {
           const relatedData = await relatedResponse.json();
           if (relatedData.products && relatedData.products.length > 0) {
-            products = relatedData.products.slice(0, 100).map(product => ({
+            // Filter out products already in cart
+            const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+            const filteredProducts = relatedData.products.filter(product => 
+              !cartProductIds.includes(product.id)
+            );
+            
+            products = filteredProducts.slice(0, 6).map(product => ({
               id: product.id,
               title: product.title,
               handle: product.handle,
@@ -2616,13 +2707,19 @@ async function loadRecommendations() {
   // Final fallback: fetch from all products
   if (products.length === 0) {
     try {
-      const response = await fetch('/collections/all/products.json?limit=8');
+      const response = await fetch('/collections/all/products.json?limit=12');
       if (response.ok) {
         const data = await response.json();
         if (data.products && data.products.length > 0) {
-          // Randomly shuffle and pick 4 products
-          const shuffled = data.products.sort(() => 0.5 - Math.random());
-          products = shuffled.slice(0, 100).map(product => ({
+          // Filter out products already in cart
+          const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+          const filteredProducts = data.products.filter(product => 
+            !cartProductIds.includes(product.id)
+          );
+          
+          // Randomly shuffle and pick products
+          const shuffled = filteredProducts.sort(() => 0.5 - Math.random());
+          products = shuffled.slice(0, 6).map(product => ({
             id: product.id,
             title: product.title,
             handle: product.handle,
@@ -2642,7 +2739,7 @@ async function loadRecommendations() {
   if (products.length > 0) {
     renderRecommendedProducts(products, container);
   } else {
-    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px; font-size: 12px;">Select a collection in theme settings</p>';
+    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px; font-size: 12px;">No recommendations available</p>';
   }
 }
 
