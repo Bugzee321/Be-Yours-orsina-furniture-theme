@@ -920,36 +920,49 @@
     }
   }
   
-  /* YOU MAY ALSO LIKE SECTION - Always Visible Now */
+  /* YOU MAY ALSO LIKE SECTION - Always Left Side */
   .you-may-like-section {
     background: #FCF9F6;
     overflow-y: auto;
     padding: 20px;
     border-right: 1px solid #E5E5E5;
     flex-shrink: 0;
-    order: 2;
+    order: 1;
+    height: 100%;
   }
 
   /* Desktop: Left sidebar */
   @media screen and (min-width: 991px) {
     .you-may-like-section {
       width: 380px;
-      height: 100%;
-      order: 1;
-      border-right: 1px solid #E5E5E5;
-      border-bottom: none;
+      padding: 30px;
     }
   }
 
-  /* Mobile: Bottom section */
+  /* Mobile: Left sidebar but smaller */
   @media screen and (max-width: 990px) {
     .you-may-like-section {
-      width: 100%;
-      max-height: 300px;
-      order: 3;
-      border-right: none;
-      border-top: 1px solid #E5E5E5;
-      padding: 15px;
+      width: 35%;
+      min-width: 280px;
+      padding: 15px 10px;
+    }
+  }
+
+  /* Small mobile: Adjust width */
+  @media screen and (max-width: 768px) {
+    .you-may-like-section {
+      width: 40%;
+      min-width: 260px;
+      padding: 12px 8px;
+    }
+  }
+
+  /* Very small mobile: Minimum viable width */
+  @media screen and (max-width: 480px) {
+    .you-may-like-section {
+      width: 45%;
+      min-width: 240px;
+      padding: 10px 6px;
     }
   }
   
