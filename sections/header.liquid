@@ -2543,8 +2543,7 @@ function closeCartDrawer() {
     cartDrawerOpen = false;
   }
 }
-
-// Enhanced Load Recommendations - Tags-based Logic for Cart Items
+// Enhanced Load Recommendations - Collection-based Logic for First 2 Cart Items
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2556,64 +2555,72 @@ async function loadRecommendations() {
   
   let products = [];
   
-  // NEW: Get tags from cart items for tag-based recommendations
-  let cartTags = [];
+  // NEW: Get collections from first 2 cart items only
+  let cartCollections = [];
   if (cartData && cartData.items && cartData.items.length > 0) {
     try {
-      // Collect all unique tags from cart items
-      const tagPromises = cartData.items.map(async (item) => {
+      // Take only first 2 products from cart
+      const firstTwoItems = cartData.items.slice(0, 2);
+      
+      console.log('Getting collections for first 2 cart items:', firstTwoItems.map(item => item.product_title));
+      
+      // Get product details and collections for first 2 items
+      const collectionPromises = firstTwoItems.map(async (item) => {
         try {
-          const productResponse = await fetch(`/products/${item.tagBasedProducts}.js`);
+          const productResponse = await fetch(`/products/${item.handle}.js`);
           if (productResponse.ok) {
             const productData = await productResponse.json();
-            return productData.tags || [];
+            // Get collection handles from product collections
+            if (productData.collections && productData.collections.length > 0) {
+              return productData.collections.map(collection => collection.handle);
+            }
           }
         } catch (error) {
-          console.log(`Could not fetch tags for product: ${item.handle}`);
+          console.log(`Could not fetch collections for product: ${item.handle}`);
         }
         return [];
       });
       
-      const allTagArrays = await Promise.all(tagPromises);
-      cartTags = [...new Set(allTagArrays.flat())]; // Get unique tags
+      const allCollectionArrays = await Promise.all(collectionPromises);
+      cartCollections = [...new Set(allCollectionArrays.flat())]; // Get unique collection handles
       
-      console.log('Cart items tags:', cartTags);
+      console.log('Found collections from first 2 cart items:', cartCollections);
       
     } catch (error) {
-      console.log('Error collecting cart tags:', error);
+      console.log('Error collecting cart collections:', error);
     }
   }
   
-  // First: Try to get products based on cart item tags
-  if (cartTags.length > 0) {
+  // First: Try to get products from collections of first 2 cart items
+  if (cartCollections.length > 0) {
     try {
-      // Search for products with matching tags
-      const tagSearchPromises = cartTags.slice(0, 5).map(async (tag) => {
+      // Get products from each collection
+      const collectionPromises = cartCollections.map(async (collectionHandle) => {
         try {
-          const searchResponse = await fetch(`/collections/all/products.json?limit=50&tag=${encodeURIComponent(tag)}`);
-          if (searchResponse.ok) {
-            const searchData = await searchResponse.json();
-            return searchData.products || [];
+          const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=20`);
+          if (collectionResponse.ok) {
+            const collectionData = await collectionResponse.json();
+            return collectionData.products || [];
           }
         } catch (error) {
-          console.log(`Could not search for tag: ${tag}`);
+          console.log(`Could not fetch collection: ${collectionHandle}`);
         }
         return [];
       });
       
-      const tagBasedProducts = await Promise.all(tagSearchPromises);
-      const allTagProducts = tagBasedProducts.flat();
+      const collectionProducts = await Promise.all(collectionPromises);
+      const allCollectionProducts = collectionProducts.flat();
       
       // Remove duplicates and products already in cart
       const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const uniqueTagProducts = allTagProducts.filter((product, index, self) => 
+      const uniqueCollectionProducts = allCollectionProducts.filter((product, index, self) => 
         index === self.findIndex(p => p.id === product.id) && 
         !cartProductIds.includes(product.id)
       );
       
-      if (uniqueTagProducts.length > 0) {
+      if (uniqueCollectionProducts.length > 0) {
         // Randomly shuffle and pick products
-        const shuffled = uniqueTagProducts.sort(() => 0.5 - Math.random());
+        const shuffled = uniqueCollectionProducts.sort(() => 0.5 - Math.random());
         products = shuffled.slice(0, 8).map(product => ({
           id: product.id,
           title: product.title,
@@ -2625,15 +2632,15 @@ async function loadRecommendations() {
           variant_id: product.variants[0].id
         }));
         
-        console.log('Found tag-based recommendations:', products.length);
+        console.log('Found collection-based recommendations:', products.length);
       }
       
     } catch (error) {
-      console.log('Error fetching tag-based products:', error);
+      console.log('Error fetching collection-based products:', error);
     }
   }
   
-  // Second: Try to get from manually selected collection (if no tag-based products found)
+  // Second: Try to get from manually selected collection (if no collection-based products found)
   if (products.length === 0) {
     try {
       const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
