@@ -1356,7 +1356,7 @@
   .cart-empty-state {
     text-align: center;
     padding: 60px 20px;
-    
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1755,9 +1755,9 @@
 
   /* Empty Cart Menu Items */
   .empty-cart-menu {
-    padding: 10px 0;
+    padding: 20px 0;
     max-height: 400px;
-    
+    overflow-y: auto;
   }
   
   .empty-cart-menu-title {
@@ -3022,7 +3022,7 @@ function updateCartCount() {
   }
 }
 
-// Enhanced Render Cart Drawer
+// Enhanced Render Cart Drawer with Server-Side Menu Rendering
 function renderCartDrawer() {
   if (!cartData) return;
   
@@ -3037,10 +3037,11 @@ function renderCartDrawer() {
     cartItemsCount.textContent = `${cartData.item_count} ${cartData.item_count === 1 ? 'item' : 'items'}`;
   }
   
-  // Empty cart state with menu options
+  // Empty cart state with pre-rendered menu
   if (cartData.item_count === 0) {
     const showEmptyMenu = '{{ section.settings.show_empty_cart_menu }}' === 'true';
     const emptyMenuType = '{{ section.settings.empty_cart_menu_type }}';
+    const emptyMenuTitle = '{{ section.settings.empty_cart_menu_title | default: "Browse Menu" | escape }}';
     
     let emptyCartHTML = `
       <div class="cart-empty-state">
@@ -3051,8 +3052,10 @@ function renderCartDrawer() {
         <button class="continue-shopping-btn" onclick="closeCartDrawer()">Continue Shopping</button>
     `;
     
-    // Add menu if enabled
+    // Add pre-rendered menu if enabled
     if (showEmptyMenu) {
+      const menuHTML = generateServerSideMenu();
+      
       if (emptyMenuType === 'toggle') {
         emptyCartHTML += `
           <div class="empty-cart-toggle">
@@ -3062,13 +3065,19 @@ function renderCartDrawer() {
             </button>
           </div>
           <div class="empty-cart-menu" id="empty-cart-menu" style="display: none;">
-            ${generateEmptyCartMenu()}
+            <div class="empty-cart-menu-title">${emptyMenuTitle}</div>
+            <div class="empty-cart-menu-items">
+              ${menuHTML}
+            </div>
           </div>
         `;
       } else {
         emptyCartHTML += `
           <div class="empty-cart-menu">
-            ${generateEmptyCartMenu()}
+            <div class="empty-cart-menu-title">${emptyMenuTitle}</div>
+            <div class="empty-cart-menu-items">
+              ${menuHTML}
+            </div>
           </div>
         `;
       }
@@ -3143,39 +3152,10 @@ function renderCartDrawer() {
   loadRecommendations();
 }
 
-// Generate Empty Cart Menu - Manual Selection with Main Menu Fallback
-function generateEmptyCartMenu() {
-  const emptyCartTitle = '{{ section.settings.empty_cart_menu_title }}' || 'Browse Collections';
-  
-  let menuHTML = `<div class="empty-cart-menu-title">${emptyCartTitle}</div><div class="empty-cart-menu-items">`;
-  
-  // Use manually selected menu, fallback to main menu
-  const menuLinks = {% if section.settings.empty_cart_menu != blank %}
-    {{ section.settings.empty_cart_menu.links | json }}
-  {% else %}
-    {{ section.settings.menu.links | json }}
-  {% endif %};
-  
-  if (menuLinks && menuLinks.length > 0) {
-    menuLinks.forEach(link => {
-      // Simple button design - just title, no icons or subtitles
-      menuHTML += `
-        <a href="${link.url}" class="empty-cart-menu-item" onclick="closeCartDrawer()">
-          ${link.title}
-        </a>
-      `;
-    });
-  } else {
-    menuHTML += `
-      <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
-        <p>📂 No menu available</p>
-        <small>Please check menu configuration in theme settings</small>
-      </div>
-    `;
-  }
-  
-  menuHTML += '</div>';
-  return menuHTML;
+// Generate Server-Side Menu HTML
+function generateServerSideMenu() {
+  // This will be populated by server-side template
+  return `{% assign empty_menu = section.settings.empty_cart_menu %}{% assign main_menu = section.settings.menu %}{% if empty_menu != blank %}{% for link in empty_menu.links %}<a href="{{ link.url }}" class="empty-cart-menu-item" onclick="closeCartDrawer()">{{ link.title | escape }}</a>{% endfor %}{% elsif main_menu != blank %}{% for link in main_menu.links %}<a href="{{ link.url }}" class="empty-cart-menu-item" onclick="closeCartDrawer()">{{ link.title | escape }}</a>{% endfor %}{% else %}<div style="text-align: center; padding: 20px; color: #666; font-size: 12px;"><p>📂 No menu available</p><small>Please configure a menu in theme settings</small></div>{% endif %}`;
 }
 
 // Toggle Empty Cart Menu
