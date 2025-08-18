@@ -1356,7 +1356,7 @@
   .cart-empty-state {
     text-align: center;
     padding: 60px 20px;
-   /* display: flex; */
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1757,7 +1757,7 @@
   .empty-cart-menu {
     padding: 20px 0;
     max-height: 400px;
-    
+    overflow-y: auto;
   }
   
   .empty-cart-menu-title {
@@ -2435,13 +2435,13 @@
         </a>
       {%- endif -%}
 
-      <!-- Cart - Opens Drawer -->
+      <!-- Cart - Opens Drawer with Perfect Empty State Handling -->
       <button class="header__icon" id="cart-icon-bubble" onclick="openCartDrawer()" title="{{ 'templates.cart.cart' | t }}">
         <svg width="24" height="24">
           <use href="#icon-cart"></use>
         </svg>
         <span class="cart-count-bubble" style="display: {% if cart.item_count > 0 %}flex{% else %}none{% endif %}">
-          {{ cart.item_count }}
+          {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
         </span>
       </button>
     </div>
@@ -2464,7 +2464,7 @@
     <div class="cart-drawer-header">
       <h2 class="cart-drawer-title">
         Shopping Cart
-        <span class="cart-items-count" id="cart-items-count">{{ cart.item_count }} items</span>
+        <span class="cart-items-count" id="cart-items-count">{% if cart.item_count > 0 %}{{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %}{% else %}No items{% endif %}</span>
       </h2>
       <button class="cart-drawer-close" onclick="closeCartDrawer()" aria-label="Close cart">
         ✕
@@ -2477,7 +2477,7 @@
       </div>
     </div>
     
-    <div class="cart-drawer-footer" id="cart-drawer-footer" style="display: none;">
+    <div class="cart-drawer-footer" id="cart-drawer-footer" style="display: {% if cart.item_count > 0 %}block{% else %}none{% endif %};">
       <div class="cart-subtotal-row">
         <span>Subtotal:</span>
         <span id="cart-subtotal">{{ cart.total_price | money }}</span>
@@ -2690,7 +2690,7 @@ function closeCartDrawer() {
   }
 }
 
-// Enhanced Load Recommendations - Collection-based Logic for First 2 Cart Items
+// Enhanced Load Recommendations - 30+ Products with Better Fallbacks
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2701,8 +2701,9 @@ async function loadRecommendations() {
   recommendationsSection.style.display = 'block';
   
   let products = [];
+  let targetCount = 30; // Target at least 30 products
   
-  // NEW: Get collections from first 2 cart items only
+  // NEW: Get collections from first 2 cart items only (if cart has items)
   let cartCollections = [];
   if (cartData && cartData.items && cartData.items.length > 0) {
     try {
@@ -2738,13 +2739,13 @@ async function loadRecommendations() {
     }
   }
   
-  // First: Try to get products from collections of first 2 cart items
+  // First: Try to get products from collections of first 2 cart items (if cart has items)
   if (cartCollections.length > 0) {
     try {
-      // Get products from each collection
+      // Get products from each collection with higher limits
       const collectionPromises = cartCollections.map(async (collectionHandle) => {
         try {
-          const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=20`);
+          const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=50`);
           if (collectionResponse.ok) {
             const collectionData = await collectionResponse.json();
             return collectionData.products || [];
@@ -2766,9 +2767,9 @@ async function loadRecommendations() {
       );
       
       if (uniqueCollectionProducts.length > 0) {
-        // Randomly shuffle and pick products
+        // Randomly shuffle and pick more products
         const shuffled = uniqueCollectionProducts.sort(() => 0.5 - Math.random());
-        products = shuffled.slice(0, 8).map(product => ({
+        products = shuffled.slice(0, Math.min(targetCount, uniqueCollectionProducts.length)).map(product => ({
           id: product.id,
           title: product.title,
           handle: product.handle,
@@ -2787,22 +2788,23 @@ async function loadRecommendations() {
     }
   }
   
-  // Second: Try to get from manually selected collection (if no collection-based products found)
-  if (products.length === 0) {
+  // Second: Try to get from manually selected collection (if not enough products or no cart items)
+  if (products.length < targetCount) {
     try {
       const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
       if (collectionHandle && collectionHandle !== '') {
-        const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=8`);
+        const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=50`);
         if (collectionResponse.ok) {
           const collectionData = await collectionResponse.json();
           if (collectionData.products && collectionData.products.length > 0) {
-            // Filter out products already in cart
+            // Filter out products already in cart and already selected
             const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+            const existingProductIds = products.map(p => p.id);
             const filteredProducts = collectionData.products.filter(product => 
-              !cartProductIds.includes(product.id)
+              !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
             );
             
-            products = filteredProducts.slice(0, 8).map(product => ({
+            const additionalProducts = filteredProducts.slice(0, targetCount - products.length).map(product => ({
               id: product.id,
               title: product.title,
               handle: product.handle,
@@ -2812,35 +2814,36 @@ async function loadRecommendations() {
               url: `/products/${product.handle}`,
               variant_id: product.variants[0].id
             }));
+            
+            products = [...products, ...additionalProducts];
           }
         }
       }
     } catch (error) {
-      console.log('Could not fetch from collection, trying related products');
+      console.log('Could not fetch from manually selected collection');
     }
   }
   
-  // Third: Try to get related products for the last added product (if collection didn't work)
-  if (products.length === 0 && lastAddedProductHandle) {
+  // Third: Try to get related products for the last added product (if still not enough)
+  if (products.length < targetCount && lastAddedProductHandle) {
     try {
-      // Use product handle to get product ID first
       const productResponse = await fetch(`/products/${lastAddedProductHandle}.js`);
       if (productResponse.ok) {
         const productData = await productResponse.json();
         const productId = productData.id;
         
-        // Now get recommendations using product ID
-        const relatedResponse = await fetch(`/recommendations/products.json?product_id=${productId}&limit=6`);
+        const relatedResponse = await fetch(`/recommendations/products.json?product_id=${productId}&limit=20`);
         if (relatedResponse.ok) {
           const relatedData = await relatedResponse.json();
           if (relatedData.products && relatedData.products.length > 0) {
-            // Filter out products already in cart
+            // Filter out products already selected and in cart
             const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+            const existingProductIds = products.map(p => p.id);
             const filteredProducts = relatedData.products.filter(product => 
-              !cartProductIds.includes(product.id)
+              !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
             );
             
-            products = filteredProducts.slice(0, 6).map(product => ({
+            const additionalProducts = filteredProducts.slice(0, targetCount - products.length).map(product => ({
               id: product.id,
               title: product.title,
               handle: product.handle,
@@ -2850,30 +2853,33 @@ async function loadRecommendations() {
               url: `/products/${product.handle}`,
               variant_id: product.variants[0].id
             }));
+            
+            products = [...products, ...additionalProducts];
           }
         }
       }
     } catch (error) {
-      console.log('Could not fetch related products, trying general products');
+      console.log('Could not fetch related products');
     }
   }
   
-  // Final fallback: fetch from all products
-  if (products.length === 0) {
+  // Final fallback: fetch from all products to reach 30+
+  if (products.length < targetCount) {
     try {
-      const response = await fetch('/collections/all/products.json?limit=12');
+      const response = await fetch('/collections/all/products.json?limit=100');
       if (response.ok) {
         const data = await response.json();
         if (data.products && data.products.length > 0) {
-          // Filter out products already in cart
+          // Filter out products already selected and in cart
           const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+          const existingProductIds = products.map(p => p.id);
           const filteredProducts = data.products.filter(product => 
-            !cartProductIds.includes(product.id)
+            !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
           );
           
-          // Randomly shuffle and pick products
+          // Randomly shuffle and pick remaining products to reach target
           const shuffled = filteredProducts.sort(() => 0.5 - Math.random());
-          products = shuffled.slice(0, 6).map(product => ({
+          const additionalProducts = shuffled.slice(0, targetCount - products.length).map(product => ({
             id: product.id,
             title: product.title,
             handle: product.handle,
@@ -2883,12 +2889,16 @@ async function loadRecommendations() {
             url: `/products/${product.handle}`,
             variant_id: product.variants[0].id
           }));
+          
+          products = [...products, ...additionalProducts];
         }
       }
     } catch (error) {
       console.error('Error loading fallback products:', error);
     }
   }
+  
+  console.log(`Final recommendations count: ${products.length}`);
   
   if (products.length > 0) {
     renderRecommendedProducts(products, container);
@@ -2995,7 +3005,7 @@ async function quickAddToCart(variantId, button) {
   }
 }
 
-// Enhanced Load Cart Contents
+// Enhanced Load Cart Contents with Better Empty State Handling
 async function loadCartDrawer() {
   try {
     const response = await fetch('/cart.js');
@@ -3007,22 +3017,39 @@ async function loadCartDrawer() {
   }
 }
 
-// Update cart count in header
+// Update cart count in header with proper empty state handling
 function updateCartCount() {
   const cartBubble = document.querySelector('.cart-count-bubble');
+  const cartItemsCount = document.getElementById('cart-items-count');
+  
   if (cartBubble && cartData) {
-    cartBubble.textContent = cartData.item_count;
-    cartBubble.style.display = cartData.item_count > 0 ? 'flex' : 'none';
-    
-    // Animate the bubble
-    cartBubble.style.animation = 'none';
-    setTimeout(() => {
-      cartBubble.style.animation = 'cartBubblePulse 0.3s ease';
-    }, 10);
+    // Hide bubble completely when cart is empty
+    if (cartData.item_count <= 0) {
+      cartBubble.style.display = 'none';
+      cartBubble.textContent = '0';
+    } else {
+      cartBubble.textContent = cartData.item_count;
+      cartBubble.style.display = 'flex';
+      
+      // Animate the bubble only when there are items
+      cartBubble.style.animation = 'none';
+      setTimeout(() => {
+        cartBubble.style.animation = 'cartBubblePulse 0.3s ease';
+      }, 10);
+    }
+  }
+  
+  // Update cart items count text
+  if (cartItemsCount) {
+    if (cartData.item_count <= 0) {
+      cartItemsCount.textContent = 'No items';
+    } else {
+      cartItemsCount.textContent = `${cartData.item_count} ${cartData.item_count === 1 ? 'item' : 'items'}`;
+    }
   }
 }
 
-// Enhanced Render Cart Drawer with Server-Side Menu Rendering
+// Enhanced Render Cart Drawer with Perfect Empty State Handling
 function renderCartDrawer() {
   if (!cartData) return;
   
@@ -3032,13 +3059,17 @@ function renderCartDrawer() {
   const cartSubtotal = document.getElementById('cart-subtotal');
   const cartTotal = document.getElementById('cart-total');
   
-  // Update cart count
+  // Update cart count with proper empty state handling
   if (cartItemsCount) {
-    cartItemsCount.textContent = `${cartData.item_count} ${cartData.item_count === 1 ? 'item' : 'items'}`;
+    if (!cartData.items || cartData.item_count <= 0) {
+      cartItemsCount.textContent = 'No items';
+    } else {
+      cartItemsCount.textContent = `${cartData.item_count} ${cartData.item_count === 1 ? 'item' : 'items'}`;
+    }
   }
   
-  // Empty cart state with pre-rendered menu
-  if (cartData.item_count === 0) {
+  // Empty cart state with pre-rendered menu - COMPLETELY EMPTY
+  if (!cartData.items || cartData.item_count <= 0) {
     const showEmptyMenu = '{{ section.settings.show_empty_cart_menu }}' === 'true';
     const emptyMenuType = '{{ section.settings.empty_cart_menu_type }}';
     const emptyMenuTitle = '{{ section.settings.empty_cart_menu_title | default: "Browse Menu" | escape }}';
@@ -3087,12 +3118,12 @@ function renderCartDrawer() {
     cartBody.innerHTML = emptyCartHTML;
     cartFooter.style.display = 'none';
     
-    // Always load recommendations, even with empty cart
+    // Load recommendations even with empty cart (will show 30+ products)
     loadRecommendations();
     return;
   }
   
-  // Build cart items HTML with enhanced layout
+  // Build cart items HTML with enhanced layout (ONLY when cart has items)
   let cartHTML = '<div class="cart-items-container">';
   
   cartData.items.forEach(item => {
@@ -3143,10 +3174,10 @@ function renderCartDrawer() {
   cartHTML += '</div>';
   cartBody.innerHTML = cartHTML;
   
-  // Update footer
+  // Update footer (ONLY when cart has items)
   cartFooter.style.display = 'block';
-  cartSubtotal.textContent = formatMoney(cartData.total_price);
-  cartTotal.textContent = formatMoney(cartData.total_price);
+  if (cartSubtotal) cartSubtotal.textContent = formatMoney(cartData.total_price || 0);
+  if (cartTotal) cartTotal.textContent = formatMoney(cartData.total_price || 0);
   
   // Load recommendations with context of current cart items
   loadRecommendations();
@@ -3745,11 +3776,12 @@ window.isCartDrawerOpen = function() {
     {
       "type": "range",
       "id": "recommended_products_count",
-      "min": 2,
+      "min": 10,
       "max": 100,
-      "step": 1,
-      "default": 20,
-      "label": "Number of Recommended Products"
+      "step": 5,
+      "default": 30,
+      "label": "Number of Recommended Products",
+      "info": "How many products to show in recommendations (minimum 30 recommended)"
     },
     {
       "type": "header",
