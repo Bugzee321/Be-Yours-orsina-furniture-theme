@@ -2563,7 +2563,7 @@ async function loadRecommendations() {
       // Collect all unique tags from cart items
       const tagPromises = cartData.items.map(async (item) => {
         try {
-          const productResponse = await fetch(`/products/${item.handle}.js`);
+          const productResponse = await fetch(`/products/${item.tagBasedProducts}.js`);
           if (productResponse.ok) {
             const productData = await productResponse.json();
             return productData.tags || [];
