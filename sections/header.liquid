@@ -246,6 +246,13 @@
     position: absolute;
     top: -8px;
     right: -8px;
+    animation: cartBubblePulse 0.3s ease;
+  }
+
+  @keyframes cartBubblePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
   }
   
   /* MEGA MENU - FULL WIDTH FOR DESKTOP */
@@ -864,7 +871,7 @@
     transform: translateZ(0);
   }
 
-  /* ============ CART DRAWER STYLES START - EXACT DESIGN MATCH ============ */
+  /* ============ ENHANCED CART DRAWER STYLES START ============ */
   /* Cart Drawer Overlay */
   .cart-drawer-overlay {
     position: fixed;
@@ -884,35 +891,75 @@
     visibility: visible;
   }
   
-  /* Cart Drawer Container - Desktop with Left Sidebar */
+  /* Cart Drawer Container - Fixed Mobile Layout */
   .cart-drawer {
     position: fixed;
     top: 0;
-    right: -900px;
-    width: 900px;
-    max-width: 100vw;
+    right: -100%;
+    width: 100%;
+    max-width: 900px;
     height: 100%;
     background: #fff;
     z-index: 99999;
     transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
-    flex-direction: row;
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
   }
   
   .cart-drawer.active {
     right: 0;
   }
+
+  /* Desktop Layout - Side by Side */
+  @media screen and (min-width: 991px) {
+    .cart-drawer {
+      flex-direction: row;
+      width: 900px;
+      right: -900px;
+    }
+  }
+
+  /* Mobile Layout - Stack Vertically for Better UX */
+  @media screen and (max-width: 990px) {
+    .cart-drawer {
+      flex-direction: column;
+      width: 100%;
+      right: -100%;
+    }
+  }
   
-  /* YOU MAY ALSO LIKE SECTION - LEFT SIDEBAR */
+  /* YOU MAY ALSO LIKE SECTION - Responsive Layout */
   .you-may-like-section {
-    width: 380px;
-    flex-shrink: 0;
     background: #FCF9F6;
-    height: 100%;
     overflow-y: auto;
-    padding: 40px 30px;
-    border-right: 1px solid #E5E5E5;
+    padding: 20px;
+    flex-shrink: 0;
+    order: 1;
+  }
+
+  /* Desktop: Left sidebar */
+  @media screen and (min-width: 991px) {
+    .you-may-like-section {
+      width: 380px;
+      height: 100%;
+      border-right: 1px solid #E5E5E5;
+      padding: 30px;
+    }
+  }
+
+  /* Mobile: Bottom fixed section */
+  @media screen and (max-width: 990px) {
+    .you-may-like-section {
+      width: 100%;
+      height: 200px; /* Fixed height */
+      border-top: 1px solid #E5E5E5;
+      padding: 15px;
+      order: 3; /* Always at bottom */
+      flex-shrink: 0; /* Never shrink */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent overall scrolling */
+    }
   }
   
   .you-may-like-title {
@@ -921,8 +968,18 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #666;
-    margin: 0 0 30px 0;
+    margin: 0 0 20px 0;
     text-align: center;
+  }
+
+  /* Mobile: Smaller title for fixed bottom section */
+  @media screen and (max-width: 990px) {
+    .you-may-like-title {
+      font-size: 10px;
+      letter-spacing: 1px;
+      margin: 0 0 10px 0;
+      flex-shrink: 0;
+    }
   }
   
   .recommended-products {
@@ -930,15 +987,76 @@
     flex-direction: column;
     gap: 0;
   }
-  
+
+  /* Desktop: Vertical layout */
+  @media screen and (min-width: 991px) {
+    .recommended-products {
+      flex-direction: column;
+      overflow-y: auto;
+    }
+  }
+
+  /* Mobile: Horizontal scroll layout - takes remaining space */
+  @media screen and (max-width: 990px) {
+    .recommended-products {
+      flex-direction: row;
+      gap: 15px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+      flex: 1; /* Take remaining space after title */
+      align-items: flex-start;
+      padding-right: 15px; /* Extra padding for scroll */
+    }
+    
+    /* Hide scrollbar on mobile for cleaner look */
+    .recommended-products::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .recommended-products {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  }
+
+  /* Desktop: Vertical product cards */
   .recommended-product {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 20px 0;
+    gap: 12px;
+    padding: 12px 0;
     background: transparent;
     border-bottom: 1px solid #E5E5E5;
     transition: all 0.3s ease;
+  }
+
+  /* Desktop styling */
+  @media screen and (min-width: 991px) {
+    .recommended-product {
+      gap: 15px;
+      padding: 15px 0;
+      border-bottom: 1px solid #E5E5E5;
+    }
+  }
+
+  /* Mobile: Horizontal card style layout */
+  @media screen and (max-width: 990px) {
+    .recommended-product {
+      flex-direction: column;
+      text-align: center;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid #E5E5E5;
+      border-radius: 8px;
+      background: #fff;
+      min-width: 130px;
+      max-width: 130px;
+      flex-shrink: 0;
+      height: 150px; /* Fixed height for cards */
+      justify-content: space-between;
+    }
   }
   
   .recommended-product:last-child {
@@ -950,27 +1068,58 @@
   }
   
   .recommended-product-image {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     object-fit: cover;
     flex-shrink: 0;
     background: #fff;
     border: 1px solid #E5E5E5;
+    border-radius: 4px;
+  }
+
+  /* Desktop: Normal size */
+  @media screen and (min-width: 991px) {
+    .recommended-product-image {
+      width: 70px;
+      height: 70px;
+    }
+  }
+
+  /* Mobile: Good size for cards */
+  @media screen and (max-width: 990px) {
+    .recommended-product-image {
+      width: 60px;
+      height: 60px;
+    }
   }
   
   .recommended-product-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
   }
   
   .recommended-product-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
     color: #B8653C;
     text-decoration: none;
-    line-height: 1.4;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Mobile: Better readability */
+  @media screen and (max-width: 990px) {
+    .recommended-product-title {
+      font-size: 12px;
+      -webkit-line-clamp: 2;
+      text-align: center;
+    }
   }
   
   .recommended-product-title:hover {
@@ -981,68 +1130,111 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 4px 0;
+  }
+
+  /* Mobile: Center the price */
+  @media screen and (max-width: 990px) {
+    .recommended-product-price {
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
   }
   
   .recommended-price-value {
-    font-size: 13px;
+    font-size: 12px;
     color: #333;
+    font-weight: 500;
   }
-  
-  .price-suffix {
-    font-size: 10px;
-    color: #666;
-    vertical-align: super;
+
+  /* Mobile: Good size for readability */
+  @media screen and (max-width: 990px) {
+    .recommended-price-value {
+      font-size: 11px;
+    }
   }
   
   .recommended-add-btn {
     background: transparent;
     color: #B8653C;
-    border: none;
-    padding: 0;
-    font-size: 11px;
+    border: 1px solid #B8653C;
+    padding: 6px 12px;
+    font-size: 10px;
     font-weight: 400;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: all 0.3s ease;
-    align-self: flex-start;
-    text-decoration: none;
-    position: relative;
+    border-radius: 3px;
+    white-space: nowrap;
   }
-  
-  .recommended-add-btn::after {
-    content: '→';
-    margin-left: 8px;
-    transition: transform 0.3s ease;
-    display: inline-block;
+
+  /* Mobile: Proper size button */
+  @media screen and (max-width: 990px) {
+    .recommended-add-btn {
+      padding: 5px 10px;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+    }
   }
   
   .recommended-add-btn:hover {
-    color: #A85A3B;
+    background: #B8653C;
+    color: #fff;
+  }
+
+  .recommended-add-btn.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .recommended-add-btn.added {
+    background: #22C55E;
+    border-color: #22C55E;
+    color: white;
   }
   
-  .recommended-add-btn:hover::after {
-    transform: translateX(3px);
-  }
-  
-  /* CART MAIN SECTION - RIGHT SIDE */
+  /* CART MAIN SECTION */
   .cart-drawer-wrapper {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
     background: #fff;
+    order: 2;
+  }
+
+  /* Desktop: Right side */
+  @media screen and (min-width: 991px) {
+    .cart-drawer-wrapper {
+      order: 2;
+    }
+  }
+
+  /* Mobile: Top section, takes remaining space */
+  @media screen and (max-width: 990px) {
+    .cart-drawer-wrapper {
+      order: 1; /* Cart items at top */
+      flex: 1; /* Takes remaining space */
+      min-height: 0; /* Allow shrinking */
+    }
   }
   
   /* Cart Header */
   .cart-drawer-header {
-    padding: 30px;
+    padding: 25px 30px 20px;
     border-bottom: 1px solid #E5E5E5;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #fff;
+    flex-shrink: 0;
+  }
+
+  @media screen and (max-width: 768px) {
+    .cart-drawer-header {
+      padding: 20px 20px 15px;
+    }
   }
   
   .cart-drawer-title {
@@ -1052,6 +1244,15 @@
     text-transform: uppercase;
     margin: 0;
     color: #666;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cart-items-count {
+    font-size: 9px;
+    color: #999;
+    font-weight: 300;
   }
   
   .cart-drawer-close {
@@ -1071,29 +1272,63 @@
   
   .cart-drawer-close:hover {
     color: #333;
+    transform: scale(1.1);
   }
   
-  /* Cart Shipping Notice */
-  .cart-shipping-notice {
-    padding: 15px 30px;
-    background: #F0FFF4;
-    color: #22C55E;
-    font-size: 13px;
-    text-align: center;
-  }
-  
-  /* Cart Body */
+  /* Cart Body - Enhanced Scrolling */
   .cart-drawer-body {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
+    padding: 0;
     background: #fff;
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(184, 101, 60, 0.3) transparent;
+  }
+
+  /* Desktop: Normal behavior */
+  @media screen and (min-width: 991px) {
+    .cart-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+  }
+
+  /* Mobile: Take remaining space above footer */
+  @media screen and (max-width: 990px) {
+    .cart-drawer-body {
+      flex: 1; /* Takes available space */
+      overflow-y: auto; /* Scrollable */
+      min-height: 0; /* Allow shrinking */
+    }
+  }
+
+  .cart-drawer-body::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .cart-drawer-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .cart-drawer-body::-webkit-scrollbar-thumb {
+    background: rgba(184, 101, 60, 0.3);
+    border-radius: 3px;
+  }
+
+  .cart-drawer-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(184, 101, 60, 0.5);
   }
   
   /* Empty Cart */
   .cart-empty-state {
     text-align: center;
     padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
   }
   
   .cart-empty-icon {
@@ -1120,6 +1355,7 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     transition: all 0.3s;
+    border-radius: 3px;
   }
   
   .continue-shopping-btn:hover {
@@ -1127,41 +1363,96 @@
     transform: translateY(-2px);
   }
   
-  /* Cart Items Container */
+  /* Cart Items Container - Enhanced for Scrolling */
   .cart-items-container {
     display: flex;
     flex-direction: column;
     gap: 0;
+    padding: 10px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .cart-items-container {
+      padding: 5px;
+    }
   }
   
-  /* Individual Cart Item */
+  /* Individual Cart Item - Improved Layout */
   .cart-drawer-item {
     background: #fff;
-    padding: 0px 0;
+    padding: 20px 15px;
     display: flex;
-    gap: 05px;
+    gap: 15px;
     position: relative;
     transition: all 0.3s;
-    border-bottom: 1px solid #E5E5E5;
+    border-bottom: 1px solid #F5F5F5;
+    align-items: flex-start;
+  }
+
+  @media screen and (max-width: 768px) {
+    .cart-drawer-item {
+      padding: 15px 10px;
+      gap: 12px;
+    }
   }
   
   .cart-drawer-item:last-child {
     border-bottom: none;
   }
+
+  .cart-drawer-item:hover {
+    background: #FAFAFA;
+  }
+
+  /* Remove Button - Positioned top right */
+  .cart-item-remove {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    z-index: 1;
+  }
+
+  .cart-item-remove:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+  }
+
+  .cart-item-remove svg {
+    width: 14px;
+    height: 14px;
+  }
   
   .cart-item-image {
-    width: 100px;
-    height: 120px;
+    width: 90px;
+    height: 110px;
     object-fit: cover;
     flex-shrink: 0;
     background: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #eee;
+  }
+
+  @media screen and (max-width: 768px) {
+    .cart-item-image {
+      width: 80px;
+      height: 95px;
+    }
   }
   
   .cart-item-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 01px;
+    gap: 8px;
+    min-width: 0;
+    padding-right: 25px; /* Space for remove button */
   }
   
   .cart-item-title {
@@ -1169,7 +1460,17 @@
     font-weight: 400;
     color: #B8653C;
     text-decoration: none;
-    line-height: 1.4;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media screen and (max-width: 768px) {
+    .cart-item-title {
+      font-size: 13px;
+    }
   }
   
   .cart-item-title:hover {
@@ -1184,20 +1485,35 @@
   .cart-item-price-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    margin: 4px 0;
   }
   
   .cart-item-price {
     font-size: 14px;
     color: #333;
+    font-weight: 500;
+  }
+
+  .cart-item-original-price {
+    font-size: 12px;
+    color: #999;
+    text-decoration: line-through;
+  }
+
+  .cart-item-sale-price {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
   }
   
-  /* Quantity Selector */
+  /* Quantity Selector - Enhanced */
   .cart-item-actions {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     margin-top: auto;
+    gap: 10px;
   }
   
   .cart-quantity-selector {
@@ -1205,6 +1521,8 @@
     align-items: center;
     border: 1px solid #E5E5E5;
     background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
   }
   
   .quantity-btn {
@@ -1219,10 +1537,12 @@
     transition: all 0.2s;
     font-size: 14px;
     color: #666;
+    font-weight: 500;
   }
   
   .quantity-btn:hover:not(:disabled) {
     background: #f5f5f5;
+    color: #B8653C;
   }
   
   .quantity-btn:disabled {
@@ -1231,67 +1551,98 @@
   }
   
   .quantity-value {
-    width: 50px;
+    width: 45px;
     text-align: center;
     border: none;
     border-left: 1px solid #E5E5E5;
     border-right: 1px solid #E5E5E5;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 13px;
+    font-weight: 500;
     background: #fff;
+    padding: 8px 4px;
+    color: #333;
+  }
+
+  /* Item total price */
+  .cart-item-total {
+    font-size: 13px;
+    color: #B8653C;
+    font-weight: 500;
+    text-align: right;
+    margin-top: auto;
   }
   
-  /* Cart Footer */
+  /* Cart Footer - Enhanced */
   .cart-drawer-footer {
-    padding: 10px;
+    padding: 20px 30px;
     border-top: 1px solid #E5E5E5;
-    background: #fff;
+    background: #FAFAFA;
+    flex-shrink: 0;
   }
-  
-  .cart-note-section {
-    margin-bottom: 20px;
+
+  /* Desktop: Normal footer */
+  @media screen and (min-width: 991px) {
+    .cart-drawer-footer {
+      flex-shrink: 0;
+    }
   }
-  
-  .cart-note-toggle {
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+
+  /* Mobile: Static bottom footer */
+  @media screen and (max-width: 990px) {
+    .cart-drawer-footer {
+      padding: 15px 20px;
+      flex-shrink: 0; /* Never shrink */
+      position: sticky; /* Stick to bottom of cart section */
+      bottom: 0;
+      z-index: 10;
+    }
   }
-  
-  .cart-note-toggle svg {
-    width: 16px;
-    height: 16px;
+
+  @media screen and (max-width: 768px) {
+    .cart-drawer-footer {
+      padding: 15px 20px;
+    }
   }
   
   .cart-subtotal-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: #333;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #666;
   }
   
+  .cart-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 0;
+    border-top: 1px solid #E5E5E5;
+  }
+
   .cart-total-price {
     font-size: 18px;
-    font-weight: 400;
+    font-weight: 500;
+    color: #333;
   }
   
   .cart-footer-buttons {
     display: flex;
-    gap: 15px;
+    gap: 12px;
+  }
+
+  @media screen and (max-width: 480px) {
+    .cart-footer-buttons {
+      flex-direction: column;
+      gap: 8px;
+    }
   }
   
   .cart-checkout-btn {
     flex: 1;
-    padding: 14px;
+    padding: 14px 20px;
     background: #B8653C;
     color: #fff;
     border: none;
@@ -1304,18 +1655,20 @@
     text-decoration: none;
     text-align: center;
     display: block;
+    border-radius: 3px;
   }
   
   .cart-checkout-btn:hover {
     background: #A85A3B;
+    transform: translateY(-1px);
   }
   
   .cart-view-btn {
     flex: 1;
-    padding: 14px;
+    padding: 14px 20px;
     background: #fff;
-    color: #333;
-    border: 1px solid #E5E5E5;
+    color: #B8653C;
+    border: 1px solid #B8653C;
     font-size: 11px;
     font-weight: 400;
     cursor: pointer;
@@ -1325,11 +1678,12 @@
     text-decoration: none;
     text-align: center;
     display: block;
+    border-radius: 3px;
   }
   
   .cart-view-btn:hover {
-    border-color: #B8653C;
-    color: #B8653C;
+    background: #B8653C;
+    color: #fff;
   }
   
   /* Loading State */
@@ -1338,6 +1692,7 @@
     justify-content: center;
     align-items: center;
     padding: 60px;
+    height: 100%;
   }
   
   .cart-spinner {
@@ -1365,38 +1720,29 @@
       opacity: 0;
     }
   }
-  
-  /* Mobile Responsive */
-  @media screen and (max-width: 768px) {
-    .cart-drawer {
-      width: 100%;
-      right: -100%;
-      flex-direction: column;
-    }
-    
-    .you-may-like-section {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid #E5E5E5;
-      padding: 20px;
-      max-height: 300px;
-    }
-    
-    .recommended-products {
-      flex-direction: row;
-      overflow-x: auto;
-      gap: 15px;
-    }
-    
-    .recommended-product {
-      flex-direction: column;
-      min-width: 150px;
-      border: 1px solid #E5E5E5;
-      padding: 15px;
-      border-radius: 8px;
-    }
+
+  /* Show cart added feedback */
+  .cart-added-feedback {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #22C55E;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100000;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
-  /* ============ CART DRAWER STYLES END ============ */
+
+  .cart-added-feedback.show {
+    transform: translateX(0);
+  }
+
+  /* ============ ENHANCED CART DRAWER STYLES END ============ */
   
   /* RESPONSIVE BREAKPOINTS - MOBILE LOGO CENTER & HIDE SEARCH */
   @media screen and (max-width: 1400px) {
@@ -1575,21 +1921,6 @@
     }
   }
   
-  @media screen and (max-width: 500px) {
-    .cart-drawer-body {
-      padding: 10px;
-    }
-    
-    .cart-drawer-item {
-      padding: 15px 0;
-    }
-    
-    .cart-item-image {
-      width: 80px;
-      height: 80px;
-    }
-  }
-  
   @media screen and (max-width: 480px) {
     .header {
       padding: 10px 12px;
@@ -1747,29 +2078,6 @@
   .mega-menu-content::-webkit-scrollbar-thumb:hover {
     background: rgba(var(--color-highlight), 0.8);
   }
-
-
-  /* Force "You May Also Like" to appear below cart drawer on mobile */
-@media (max-width: 990px) {
-  #cart-drawer.with-recommendations {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #you-may-like-section {
-    order: 2; /* Moves it below cart items */
-    width: 100%;
-    margin-top: 1rem;
-  }
-
-  #cart-drawer-body {
-    order: 1;
-  }
-
-  .cart-drawer-footer {
-    order: 3;
-  }
-}
 
 </style>
 
@@ -1942,11 +2250,11 @@
   </header>
 </{% if enable_sticky_header %}sticky-header{% else %}div{% endif %}>
 
-<!-- Cart Drawer HTML -->
+<!-- Enhanced Cart Drawer HTML -->
 <div class="cart-drawer-overlay" onclick="closeCartDrawer()"></div>
 <div class="cart-drawer" id="cart-drawer">
-  <!-- You May Also Like Section - Desktop pe left, Mobile pe bottom -->
-  <div class="you-may-like-section" id="you-may-like-section" style="display: none;">
+  <!-- You May Also Like Section - Always Visible -->
+  <div class="you-may-like-section" id="you-may-like-section">
     <h3 class="you-may-like-title">{{ section.settings.recommended_title | default: "You May Also Like" }}</h3>
     <div class="recommended-products" id="recommended-products-container">
       <!-- Dynamic products will be loaded here -->
@@ -1958,7 +2266,7 @@
     <div class="cart-drawer-header">
       <h2 class="cart-drawer-title">
         Shopping Cart
-        <span class="cart-items-count" id="cart-items-count">0 items</span>
+        <span class="cart-items-count" id="cart-items-count">{{ cart.item_count }} items</span>
       </h2>
       <button class="cart-drawer-close" onclick="closeCartDrawer()" aria-label="Close cart">
         ✕
@@ -1986,6 +2294,11 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Cart Added Feedback -->
+<div class="cart-added-feedback" id="cart-added-feedback">
+  Product added to cart!
 </div>
 
 <!-- Search Modal -->
@@ -2144,12 +2457,31 @@
 </svg>
 
 <script>
-// ============ CART DRAWER JAVASCRIPT START ============
+// ============ ENHANCED CART DRAWER JAVASCRIPT START ============
 // Cart Drawer State
 let cartDrawerOpen = false;
 let cartData = null;
+let lastAddedProductHandle = null;
 
-// Open Cart Drawer
+// Global function to trigger cart drawer opening from anywhere
+window.triggerCartDrawerOpen = function() {
+  openCartDrawer();
+};
+
+// Show feedback message
+function showCartAddedFeedback(message = 'Product added to cart!') {
+  const feedback = document.getElementById('cart-added-feedback');
+  if (feedback) {
+    feedback.textContent = message;
+    feedback.classList.add('show');
+    
+    setTimeout(() => {
+      feedback.classList.remove('show');
+    }, 3000);
+  }
+}
+
+// Open Cart Drawer with enhanced auto-opening
 function openCartDrawer() {
   const drawer = document.getElementById('cart-drawer');
   const overlay = document.querySelector('.cart-drawer-overlay');
@@ -2178,72 +2510,110 @@ function closeCartDrawer() {
   }
 }
 
-// Global settings from Liquid
-const recommendationSettings = {
-  type: '{{ section.settings.recommendation_type }}',
-  productsCount: {{ section.settings.recommended_products_count | default: 4 }},
-  manualCollection: '{{ section.settings.recommended_collection.handle }}',
-  manualProducts: [
-    {%- if section.settings.recommended_collection != blank -%}
-      {%- assign manual_products = section.settings.recommended_collection.products | limit: section.settings.recommended_products_count -%}
-      {%- for product in manual_products -%}
-        {
-          id: {{ product.id }},
-          title: {{ product.title | json }},
-          handle: {{ product.handle | json }},
-          price: {{ product.price }},
-          compare_at_price: {{ product.compare_at_price | default: 0 }},
-          image: {{ product.featured_image | image_url: width: 100 | json }},
-          url: {{ product.url | json }},
-          variant_id: {{ product.selected_or_first_available_variant.id }}
-        }{%- unless forloop.last -%},{%- endunless -%}
-      {%- endfor -%}
-    {%- endif -%}
-  ]
-};
-
-// Load recommendations
+// Enhanced Load Recommendations - Fixed API and fallback logic
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
   
   if (!recommendationsSection || !container) return;
   
-  // Use manual collection products if set
-  const manualProducts = recommendationSettings.manualProducts;
+  // Always show the recommendations section
+  recommendationsSection.style.display = 'block';
   
-  if (manualProducts && manualProducts.length > 0) {
-    renderRecommendedProducts(manualProducts, container);
-    recommendationsSection.style.display = 'block';
-  } else {
-    // Try to fetch from a default collection
+  let products = [];
+  
+  // Try to get related products for the last added product
+  if (lastAddedProductHandle) {
+    try {
+      // Use product handle to get product ID first
+      const productResponse = await fetch(`/products/${lastAddedProductHandle}.js`);
+      if (productResponse.ok) {
+        const productData = await productResponse.json();
+        const productId = productData.id;
+        
+        // Now get recommendations using product ID
+        const relatedResponse = await fetch(`/recommendations/products.json?product_id=${productId}&limit=6`);
+        if (relatedResponse.ok) {
+          const relatedData = await relatedResponse.json();
+          if (relatedData.products && relatedData.products.length > 0) {
+            products = relatedData.products.slice(0, 4).map(product => ({
+              id: product.id,
+              title: product.title,
+              handle: product.handle,
+              price: product.variants[0].price * 100,
+              compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+              image: product.images[0] || '',
+              url: `/products/${product.handle}`,
+              variant_id: product.variants[0].id
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Could not fetch related products, falling back to manual/default');
+    }
+  }
+  
+  // Fallback to manual collection if no related products found
+  if (products.length === 0) {
+    try {
+      // Try to fetch from the manually selected collection
+      const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
+      if (collectionHandle && collectionHandle !== '') {
+        const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=4`);
+        if (collectionResponse.ok) {
+          const collectionData = await collectionResponse.json();
+          if (collectionData.products && collectionData.products.length > 0) {
+            products = collectionData.products.slice(0, 4).map(product => ({
+              id: product.id,
+              title: product.title,
+              handle: product.handle,
+              price: product.variants[0].price * 100,
+              compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+              image: product.images[0] || '',
+              url: `/products/${product.handle}`,
+              variant_id: product.variants[0].id
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Could not fetch from manual collection, trying general products');
+    }
+  }
+  
+  // Final fallback: fetch from all products
+  if (products.length === 0) {
     try {
       const response = await fetch('/collections/all/products.json?limit=4');
       if (response.ok) {
         const data = await response.json();
-        const products = data.products.slice(0, 4).map(product => ({
-          id: product.id,
-          title: product.title,
-          handle: product.handle,
-          price: product.variants[0].price * 100,
-          compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-          image: product.images[0] || '',
-          url: `/products/${product.handle}`,
-          variant_id: product.variants[0].id
-        }));
-        
-        if (products.length > 0) {
-          renderRecommendedProducts(products, container);
-          recommendationsSection.style.display = 'block';
+        if (data.products && data.products.length > 0) {
+          products = data.products.slice(0, 4).map(product => ({
+            id: product.id,
+            title: product.title,
+            handle: product.handle,
+            price: product.variants[0].price * 100,
+            compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
+            image: product.images[0] || '',
+            url: `/products/${product.handle}`,
+            variant_id: product.variants[0].id
+          }));
         }
       }
     } catch (error) {
-      console.error('Error loading recommendations:', error);
+      console.error('Error loading fallback products:', error);
     }
+  }
+  
+  if (products.length > 0) {
+    renderRecommendedProducts(products, container);
+  } else {
+    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px; font-size: 12px;">Loading recommendations...</p>';
   }
 }
 
-// Render products
+// Render products with enhanced styling and error handling
 function renderRecommendedProducts(products, container) {
   if (!products || products.length === 0) return;
   
@@ -2253,24 +2623,40 @@ function renderRecommendedProducts(products, container) {
     const displayPrice = formatMoney(product.price);
     const originalPrice = hasDiscount ? formatMoney(product.compare_at_price) : '';
     
+    // Handle image URL properly
+    let imageUrl = '';
+    if (product.image) {
+      if (typeof product.image === 'string') {
+        imageUrl = product.image;
+      } else if (product.image.src) {
+        imageUrl = product.image.src;
+      }
+    }
+    
+    // Add size parameter to image URL if it doesn't have one
+    if (imageUrl && !imageUrl.includes('width=') && !imageUrl.includes('height=')) {
+      imageUrl = imageUrl + '?width=80';
+    }
+    
     html += `
       <div class="recommended-product">
-        <img src="${product.image || '/assets/placeholder.svg'}" 
+        <img src="${imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA4MCA4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNDAgMjBjMTEuMDQ2IDAgMjAgOC45NTQgMjAgMjBzLTguOTU0IDIwLTIwIDIwLTIwLTguOTU0LTIwLTIwIDguOTU0LTIwIDIwLTIwWm0tNy4wNzEgNy4wNzFhMTQgMTQgMCAwIDAgMCAxOS43OThhMTQgMTQgMCAwIDAgMTkuNzk4IDBMNDM5IDM5bC05LjE5Mi05LjE5MloiIGZpbGw9IiNlNWU1ZTUiLz48L3N2Zz4='}" 
              alt="${product.title}" 
              class="recommended-product-image"
-             loading="lazy">
+             loading="lazy"
+             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCA4MCA4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNDAgMjBjMTEuMDQ2IDAgMjAgOC45NTQgMjAgMjBzLTguOTU0IDIwLTIwIDIwLTIwLTguOTU0LTIwLTIwIDguOTU0LTIwIDIwLTIwWm0tNy4wNzEgNy4wNzFhMTQgMTQgMCAwIDAgMCAxOS43OThhMTQgMTQgMCAwIDAgMTkuNzk4IDBMNDM5IDM5bC05LjE5Mi05LjE5MloiIGZpbGw9IiNlNWU1ZTUiLz48L3N2Zz4='">
         <div class="recommended-product-info">
           <a href="${product.url}" class="recommended-product-title">
             ${product.title}
           </a>
           <div class="recommended-product-price">
-            ${hasDiscount ? `<span class="recommended-original-price">${originalPrice}</span>` : ''}
-            <span class="recommended-sale-price">${displayPrice}</span>
+            ${hasDiscount ? `<span style="text-decoration: line-through; color: #999; font-size: 10px;">${originalPrice}</span>` : ''}
+            <span class="recommended-price-value">${displayPrice}</span>
           </div>
           <button class="recommended-add-btn" 
                   data-variant-id="${product.variant_id}"
                   onclick="quickAddToCart(${product.variant_id}, this)">
-            Add
+            Add to Cart
           </button>
         </div>
       </div>
@@ -2280,11 +2666,11 @@ function renderRecommendedProducts(products, container) {
   container.innerHTML = html;
 }
 
-// Quick add to cart
+// Enhanced Quick add to cart
 async function quickAddToCart(variantId, button) {
   try {
     const originalText = button.textContent;
-    button.textContent = '...';
+    button.textContent = 'Adding...';
     button.disabled = true;
     button.classList.add('loading');
     
@@ -2299,38 +2685,63 @@ async function quickAddToCart(variantId, button) {
     
     if (response.ok) {
       await loadCartDrawer();
-      button.textContent = '✓';
+      button.textContent = 'Added ✓';
       button.classList.remove('loading');
       button.classList.add('added');
+      
+      // Show feedback
+      showCartAddedFeedback('Product added to cart!');
+      
+      // Update cart count in header
+      updateCartCount();
       
       setTimeout(() => {
         button.textContent = originalText;
         button.classList.remove('added');
         button.disabled = false;
       }, 2000);
+    } else {
+      throw new Error('Failed to add to cart');
     }
   } catch (error) {
     console.error('Error adding to cart:', error);
-    button.textContent = 'Error';
+    button.textContent = 'Try Again';
+    button.classList.remove('loading');
     setTimeout(() => {
-      button.textContent = 'Add';
+      button.textContent = 'Add to Cart';
       button.disabled = false;
     }, 2000);
   }
 }
 
-// Load Cart Contents
+// Enhanced Load Cart Contents
 async function loadCartDrawer() {
   try {
     const response = await fetch('/cart.js');
     cartData = await response.json();
     renderCartDrawer();
+    updateCartCount();
   } catch (error) {
     console.error('Error loading cart:', error);
   }
 }
 
-// Render Cart Drawer
+// Update cart count in header
+function updateCartCount() {
+  const cartBubble = document.querySelector('.cart-count-bubble');
+  if (cartBubble && cartData) {
+    cartBubble.textContent = cartData.item_count;
+    cartBubble.style.display = cartData.item_count > 0 ? 'flex' : 'none';
+    
+    // Animate the bubble
+    cartBubble.style.animation = 'none';
+    setTimeout(() => {
+      cartBubble.style.animation = 'cartBubblePulse 0.3s ease';
+    }, 10);
+  }
+}
+
+// Enhanced Render Cart Drawer
 function renderCartDrawer() {
   if (!cartData) return;
   
@@ -2339,16 +2750,10 @@ function renderCartDrawer() {
   const cartItemsCount = document.getElementById('cart-items-count');
   const cartSubtotal = document.getElementById('cart-subtotal');
   const cartTotal = document.getElementById('cart-total');
-  const cartBubble = document.querySelector('.cart-count-bubble');
   
   // Update cart count
   if (cartItemsCount) {
     cartItemsCount.textContent = `${cartData.item_count} ${cartData.item_count === 1 ? 'item' : 'items'}`;
-  }
-  
-  if (cartBubble) {
-    cartBubble.textContent = cartData.item_count;
-    cartBubble.style.display = cartData.item_count > 0 ? 'flex' : 'none';
   }
   
   // Empty cart state
@@ -2364,31 +2769,25 @@ function renderCartDrawer() {
     `;
     cartFooter.style.display = 'none';
     
-    // Hide recommendations when cart is empty
-    document.getElementById('cart-drawer').classList.remove('with-recommendations');
-    const recommendationsSection = document.getElementById('you-may-like-section');
-    if (recommendationsSection) {
-      recommendationsSection.style.display = 'none';
-    }
+    // Always load recommendations, even with empty cart
+    loadRecommendations();
     return;
   }
   
-  // Build cart items HTML
+  // Build cart items HTML with enhanced layout
   let cartHTML = '<div class="cart-items-container">';
   
   cartData.items.forEach(item => {
     const originalPrice = item.original_price || item.price;
     const hasDiscount = originalPrice > item.price;
+    const itemTotal = item.final_line_price || (item.price * item.quantity);
     
     cartHTML += `
       <div class="cart-drawer-item" data-key="${item.key}">
         <button class="cart-item-remove" onclick="removeCartItem('${item.key}')" aria-label="Remove item">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 6h18" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M10 11v6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M14 11v6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M18 6L6 18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 6L18 18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         
@@ -2414,6 +2813,9 @@ function renderCartDrawer() {
               <input type="text" class="quantity-value" value="${item.quantity}" readonly>
               <button class="quantity-btn" onclick="updateQuantity('${item.key}', ${item.quantity + 1})">+</button>
             </div>
+            <div class="cart-item-total">
+              ${formatMoney(itemTotal)}
+            </div>
           </div>
         </div>
       </div>
@@ -2428,21 +2830,31 @@ function renderCartDrawer() {
   cartSubtotal.textContent = formatMoney(cartData.total_price);
   cartTotal.textContent = formatMoney(cartData.total_price);
   
-  // Show recommendations
-  document.getElementById('cart-drawer').classList.add('with-recommendations');
+  // Load recommendations with context of current cart items
   loadRecommendations();
 }
 
-// Format Money
+// Format Money with enhanced currency handling
 function formatMoney(cents) {
-  return '{{ cart.currency.symbol }}' + (cents / 100).toFixed(2);
+  const amount = cents / 100;
+  return new Intl.NumberFormat('{{ localization.language.iso_code }}', {
+    style: 'currency',
+    currency: '{{ cart.currency.iso_code }}'
+  }).format(amount);
 }
 
-// Update Item Quantity
+// Enhanced Update Item Quantity
 async function updateQuantity(key, newQuantity) {
   if (newQuantity < 0) return;
   
   try {
+    // Show loading state
+    const item = document.querySelector(`[data-key="${key}"]`);
+    if (item) {
+      item.style.opacity = '0.6';
+      item.style.pointerEvents = 'none';
+    }
+    
     const response = await fetch('/cart/change.js', {
       method: 'POST',
       headers: {
@@ -2454,15 +2866,26 @@ async function updateQuantity(key, newQuantity) {
       })
     });
     
-    cartData = await response.json();
-    renderCartDrawer();
+    if (response.ok) {
+      cartData = await response.json();
+      renderCartDrawer();
+      updateCartCount();
+      
+      // Show feedback for quantity changes
+      if (newQuantity === 0) {
+        showCartAddedFeedback('Item removed from cart');
+      } else {
+        showCartAddedFeedback(`Quantity updated to ${newQuantity}`);
+      }
+    }
     
   } catch (error) {
     console.error('Error updating quantity:', error);
+    showCartAddedFeedback('Error updating quantity');
   }
 }
 
-// Remove Item
+// Enhanced Remove Item with animation
 async function removeCartItem(key) {
   const item = document.querySelector(`[data-key="${key}"]`);
   if (item) {
@@ -2474,7 +2897,23 @@ async function removeCartItem(key) {
   }, 300);
 }
 
-// ============ CART DRAWER JAVASCRIPT END ============
+// Enhanced Auto-open cart drawer when product is added
+function autoOpenCartDrawer(productHandle = null) {
+  lastAddedProductHandle = productHandle;
+  
+  // Always open cart drawer when product is added
+  setTimeout(() => {
+    openCartDrawer();
+  }, 100);
+}
+
+// Global function to be called from product forms
+window.productAddedToCart = function(productHandle = null) {
+  autoOpenCartDrawer(productHandle);
+  showCartAddedFeedback('Product added to cart!');
+};
+
+// ============ ENHANCED CART DRAWER JAVASCRIPT END ============
 
 // ============ EXISTING JAVASCRIPT (MEGA MENU, MOBILE MENU, ETC.) ============
 document.addEventListener('DOMContentLoaded', function() {
@@ -2691,7 +3130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Handle add to cart with drawer
+  // Enhanced: Handle add to cart with automatic drawer opening
   const addToCartForms = document.querySelectorAll('form[action*="/cart/add"]');
   addToCartForms.forEach(form => {
     form.addEventListener('submit', async function(e) {
@@ -2699,6 +3138,19 @@ document.addEventListener('DOMContentLoaded', function() {
       
       const submitButton = this.querySelector('[type="submit"]');
       const originalText = submitButton ? submitButton.textContent : '';
+      
+      // Try to get product handle from multiple sources
+      let productHandle = '';
+      if (window.location.pathname.includes('/products/')) {
+        productHandle = window.location.pathname.split('/products/')[1].split('?')[0];
+      } else {
+        // Try to get from form data or page URL
+        const pathSegments = window.location.pathname.split('/');
+        const productIndex = pathSegments.indexOf('products');
+        if (productIndex !== -1 && pathSegments[productIndex + 1]) {
+          productHandle = pathSegments[productIndex + 1];
+        }
+      }
       
       if (submitButton) {
         submitButton.textContent = 'Adding...';
@@ -2716,28 +3168,109 @@ document.addEventListener('DOMContentLoaded', function() {
         if (response.ok) {
           const item = await response.json();
           
-          // Open cart drawer
-          openCartDrawer();
+          // Set the last added product handle for recommendations
+          lastAddedProductHandle = productHandle;
+          
+          // Auto-open cart drawer
+          autoOpenCartDrawer(productHandle);
+          
+          // Show success feedback
+          showCartAddedFeedback('Product added to cart!');
+          
+        } else {
+          throw new Error('Failed to add to cart');
         }
         
       } catch (error) {
         console.error('Error adding to cart:', error);
+        showCartAddedFeedback('Error adding to cart. Please try again.');
       } finally {
         if (submitButton) {
-          submitButton.textContent = originalText;
-          submitButton.disabled = false;
+          setTimeout(() => {
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+          }, 1000);
         }
       }
     });
   });
   
-  // ESC key to close drawer
+  // Enhanced: Listen for custom cart events
+  document.addEventListener('cart:item-added', function(event) {
+    const productHandle = event.detail?.productHandle;
+    autoOpenCartDrawer(productHandle);
+    showCartAddedFeedback('Product added to cart!');
+  });
+  
+  // ESC key to close drawer and modals
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && cartDrawerOpen) {
-      closeCartDrawer();
+    if (e.key === 'Escape') {
+      if (cartDrawerOpen) {
+        closeCartDrawer();
+      }
+      closeSearchModal();
     }
   });
+  
+  // Initialize cart drawer with current cart data and load some default recommendations
+  loadCartDrawer();
+  
+  // Load some initial recommendations
+  setTimeout(() => {
+    if (!lastAddedProductHandle) {
+      loadRecommendations();
+    }
+  }, 1000);
+  
+  // Add smooth scroll behavior to cart drawer body
+  const cartBody = document.getElementById('cart-drawer-body');
+  if (cartBody) {
+    cartBody.addEventListener('scroll', function() {
+      // Smooth scrolling performance optimization
+      this.style.scrollBehavior = 'smooth';
+    });
+  }
 });
+
+// ============ GLOBAL CART INTEGRATION FUNCTIONS ============
+
+// Function to be called from any product page or form
+window.addToCartAndOpen = async function(variantId, quantity = 1, productHandle = null) {
+  try {
+    const formData = new FormData();
+    formData.append('id', variantId);
+    formData.append('quantity', quantity);
+    
+    const response = await fetch('/cart/add.js', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (response.ok) {
+      lastAddedProductHandle = productHandle;
+      autoOpenCartDrawer(productHandle);
+      showCartAddedFeedback('Product added to cart!');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    showCartAddedFeedback('Error adding to cart');
+    return false;
+  }
+};
+
+// Function to manually trigger cart drawer refresh
+window.refreshCartDrawer = function() {
+  if (cartDrawerOpen) {
+    loadCartDrawer();
+  }
+};
+
+// Function to check if cart drawer is open
+window.isCartDrawerOpen = function() {
+  return cartDrawerOpen;
+};
 </script>
 
 <!-- Sticky Header JavaScript -->
@@ -2872,26 +3405,10 @@ document.addEventListener('DOMContentLoaded', function() {
       "content": "You May Also Like Settings"
     },
     {
-      "type": "select",
-      "id": "recommendation_type",
-      "options": [
-        {
-          "value": "manual",
-          "label": "Manual Collection"
-        },
-        {
-          "value": "automatic",
-          "label": "Automatic (All Products)"
-        }
-      ],
-      "default": "manual",
-      "label": "Recommendation Type"
-    },
-    {
       "type": "collection",
       "id": "recommended_collection",
-      "label": "Recommended Products Collection",
-      "info": "Select collection for recommended products"
+      "label": "Fallback Recommended Products Collection",
+      "info": "This collection will be used if no related products are found for the added item"
     },
     {
       "type": "text",
