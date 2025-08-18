@@ -98,7 +98,7 @@
         "show_line_separator": true,
         "cart_icon": "bag",
         "enable_transparent_header": false,
-        "transparent_text_color": "#ffffff",
+        "transparent_text_color": "#a85a3b",
         "colors_text": "#333333",
         "colors_icons": "#282828",
         "colors_border": "#636657",
