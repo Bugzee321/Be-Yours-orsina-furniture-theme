@@ -36,6 +36,7 @@
     --icon-weight: 1.5px;
   }
 {%- endstyle -%}
+
 <style>
   /* Single Line Header CSS - Complete Version with Full Width Mega Menu for Desktop */
   * {
@@ -2279,9 +2280,6 @@
 
 </style>
 
-<!-- Continue with rest of the template... -->
-
-
 <!-- UPDATED HEADER STRUCTURE -->
 <{% if enable_sticky_header %}sticky-header{% else %}div{% endif %} class="header-wrapper{% if enable_transparent_header %} header-transparent{% endif %}">
   <header class="header">
@@ -2690,7 +2688,7 @@ function closeCartDrawer() {
   }
 }
 
-// Enhanced Load Recommendations - Last 2 Words Search Products on TOP Priority
+// Enhanced Load Recommendations - Multiple Priority Sources
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2700,13 +2698,129 @@ async function loadRecommendations() {
   // Always show the recommendations section
   recommendationsSection.style.display = 'block';
   
-  let searchBasedProducts = []; // TOP PRIORITY - Last 2 words search results
+  let shopifyRecommendations = []; // HIGHEST PRIORITY - Shopify's ML recommendations
+  let searchBasedProducts = []; // SECOND PRIORITY - Last 2 words search results
   let otherProducts = []; // Other recommendations
   let targetCount = 30; // Target at least 30 products
   
-  // NEW: Extract last 2 words from cart product titles for TOP PRIORITY search
-  let searchTerms = [];
+  // FIRST PRIORITY: Get Shopify's ML-based product recommendations (HIGHEST PRIORITY)
+  // This uses Shopify's machine learning to recommend products that are frequently bought together
+  // or viewed together with the products currently in the cart
   if (cartData && cartData.items && cartData.items.length > 0) {
+    try {
+      // Take first 3 cart items for recommendations
+      const productPromises = cartData.items.slice(0, 3).map(async (item) => {
+        try {
+          const recommendationUrl = `/recommendations/products?section_id=recommendations&product_id=${item.product_id}&limit=20`;
+          const response = await fetch(recommendationUrl);
+          
+          if (response.ok) {
+            const text = await response.text();
+            
+            // Parse the HTML response to extract product data
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            
+            // Try to extract product data from the HTML
+            const products = [];
+            
+            // Look for product links and data attributes
+            const productElements = doc.querySelectorAll('[data-product-id], .product-item, .product, [href*="/products/"]');
+            
+            productElements.forEach(element => {
+              const productId = element.getAttribute('data-product-id') || 
+                               element.getAttribute('data-id') ||
+                               element.querySelector('[data-product-id]')?.getAttribute('data-product-id');
+              
+              const productUrl = element.getAttribute('href') || 
+                                element.querySelector('a[href*="/products/"]')?.getAttribute('href');
+              
+              const productTitle = element.getAttribute('data-product-title') ||
+                                 element.querySelector('.product-title, .product__title, h3, h2')?.textContent?.trim();
+              
+              const productPrice = element.getAttribute('data-price') ||
+                                 element.querySelector('.price, .product-price')?.textContent?.trim();
+              
+              const productImage = element.querySelector('img')?.getAttribute('src') ||
+                                 element.getAttribute('data-image');
+              
+              if (productId && productUrl && productTitle) {
+                // Extract handle from URL
+                const handle = productUrl.split('/products/')[1]?.split('?')[0]?.split('#')[0];
+                
+                if (handle) {
+                  products.push({
+                    id: parseInt(productId),
+                    title: productTitle,
+                    handle: handle,
+                    url: productUrl,
+                    image: productImage,
+                    isShopifyRecommendation: true
+                  });
+                }
+              }
+            });
+            
+            return products;
+          }
+        } catch (error) {
+          console.log(`Shopify recommendations failed for product: ${item.product_id}`);
+        }
+        return [];
+      });
+      
+      const allRecommendationArrays = await Promise.all(productPromises);
+      const allShopifyRecs = allRecommendationArrays.flat();
+      
+      // Remove duplicates and products already in cart
+      const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+      const uniqueShopifyRecs = allShopifyRecs.filter((product, index, self) => 
+        index === self.findIndex(p => p.id === product.id) && 
+        !cartProductIds.includes(product.id)
+      );
+      
+      if (uniqueShopifyRecs.length > 0) {
+        // Get detailed product info for Shopify recommendations
+        const detailedRecsPromises = uniqueShopifyRecs.slice(0, 15).map(async (product) => {
+          try {
+            const productResponse = await fetch(`/products/${product.handle}.js`);
+            if (productResponse.ok) {
+              const productData = await productResponse.json();
+              return {
+                id: productData.id,
+                title: productData.title,
+                handle: productData.handle,
+                price: productData.variants[0].price * 100,
+                compare_at_price: productData.variants[0].compare_at_price ? productData.variants[0].compare_at_price * 100 : 0,
+                image: productData.images[0] || product.image || '',
+                url: `/products/${productData.handle}`,
+                variant_id: productData.variants[0].id,
+                isShopifyRecommendation: true
+              };
+            }
+          } catch (error) {
+            console.log(`Could not fetch detailed info for: ${product.handle}`);
+          }
+          return null;
+        });
+        
+        const detailedRecs = await Promise.all(detailedRecsPromises);
+        shopifyRecommendations = detailedRecs.filter(product => product !== null);
+        
+        console.log('🎯 Found SHOPIFY ML recommendations:', shopifyRecommendations.length);
+      }
+      
+    } catch (error) {
+      console.log('Error fetching Shopify recommendations:', error);
+    }
+  }
+  
+  // Calculate remaining products needed after Shopify recommendations
+  const remainingAfterShopify = targetCount - shopifyRecommendations.length;
+  
+  // SECOND PRIORITY: Extract last 2 words from cart product titles for search-based recommendations
+  let searchTerms = [];
+  if (remainingAfterShopify > 0 && cartData && cartData.items && cartData.items.length > 0) {
     cartData.items.forEach(item => {
       if (item.product_title) {
         // Extract last 2 words from product title
@@ -2723,8 +2837,8 @@ async function loadRecommendations() {
     console.log('🔍 Search terms from cart products (last 2 words):', searchTerms);
   }
   
-  // FIRST PRIORITY: Get products based on last 2 words search - DISPLAY ON TOP
-  if (searchTerms.length > 0) {
+  // SECOND PRIORITY: Get products based on last 2 words search
+  if (remainingAfterShopify > 0 && searchTerms.length > 0) {
     try {
       // Approach 1: Use Shopify search suggest API
       const searchPromises = searchTerms.slice(0, 3).map(async (searchTerm) => {
@@ -2762,16 +2876,18 @@ async function loadRecommendations() {
       const searchResults = await Promise.all(searchPromises);
       const allSearchProducts = searchResults.flat();
       
-      // Remove duplicates and products already in cart
+      // Remove duplicates and products already in cart and Shopify recommendations
       const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
+      const existingProductIds = shopifyRecommendations.map(p => p.id);
       const uniqueSearchProducts = allSearchProducts.filter((product, index, self) => 
         index === self.findIndex(p => p.id === product.id) && 
-        !cartProductIds.includes(product.id)
+        !cartProductIds.includes(product.id) &&
+        !existingProductIds.includes(product.id)
       );
       
       if (uniqueSearchProducts.length > 0) {
-        // Keep search products for TOP DISPLAY - DON'T shuffle yet
-        searchBasedProducts = uniqueSearchProducts.slice(0, 20).map(product => ({
+        // Keep search products for SECOND PRIORITY DISPLAY
+        searchBasedProducts = uniqueSearchProducts.slice(0, Math.min(remainingAfterShopify, 15)).map(product => ({
           id: product.id,
           title: product.title,
           handle: product.handle,
@@ -2783,7 +2899,7 @@ async function loadRecommendations() {
           isSearchBased: true // Mark as search-based for special display
         }));
         
-        console.log('🎯 Found TOP PRIORITY search-based recommendations:', searchBasedProducts.length);
+        console.log('🎯 Found SEARCH-BASED recommendations:', searchBasedProducts.length);
         console.log('📝 Search terms that produced results:', searchTerms);
       }
       
@@ -2792,10 +2908,10 @@ async function loadRecommendations() {
     }
   }
   
-  // Calculate remaining products needed
-  const remainingNeeded = targetCount - searchBasedProducts.length;
+  // Calculate remaining products needed after Shopify and search recommendations
+  const remainingNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length;
   
-  // SECOND: Get collections from first 2 cart items (for remaining spots)
+  // THIRD: Get collections from first 2 cart items (for remaining spots)
   let cartCollections = [];
   if (remainingNeeded > 0 && cartData && cartData.items && cartData.items.length > 0) {
     try {
@@ -2831,7 +2947,7 @@ async function loadRecommendations() {
     }
   }
   
-  // THIRD: Try to get products from collections of first 2 cart items
+  // FOURTH: Try to get products from collections of first 2 cart items
   if (remainingNeeded > 0 && cartCollections.length > 0) {
     try {
       // Get products from each collection with higher limits
@@ -2851,9 +2967,9 @@ async function loadRecommendations() {
       const collectionProducts = await Promise.all(collectionPromises);
       const allCollectionProducts = collectionProducts.flat();
       
-      // Remove duplicates and products already in cart and already selected
+      // Remove duplicates and products already in cart, Shopify recommendations, and search results
       const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const existingProductIds = searchBasedProducts.map(p => p.id);
+      const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id)];
       const uniqueCollectionProducts = allCollectionProducts.filter((product, index, self) => 
         index === self.findIndex(p => p.id === product.id) && 
         !cartProductIds.includes(product.id) &&
@@ -2884,8 +3000,8 @@ async function loadRecommendations() {
     }
   }
   
-  // FOURTH: Continue with other fallbacks if needed...
-  const stillNeeded = targetCount - searchBasedProducts.length - otherProducts.length;
+  // FIFTH: Continue with other fallbacks if needed...
+  const stillNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length - otherProducts.length;
   
   // Try manually selected collection
   if (stillNeeded > 0) {
@@ -2897,7 +3013,7 @@ async function loadRecommendations() {
           const collectionData = await collectionResponse.json();
           if (collectionData.products && collectionData.products.length > 0) {
             // Filter out products already selected
-            const existingProductIds = [...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
+            const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
             const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
             const filteredProducts = collectionData.products.filter(product => 
               !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
@@ -2925,7 +3041,7 @@ async function loadRecommendations() {
   }
   
   // FINAL: Fallback to all products if still needed
-  const finalNeeded = targetCount - searchBasedProducts.length - otherProducts.length;
+  const finalNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length - otherProducts.length;
   if (finalNeeded > 0) {
     try {
       const response = await fetch('/collections/all/products.json?limit=100');
@@ -2933,7 +3049,7 @@ async function loadRecommendations() {
         const data = await response.json();
         if (data.products && data.products.length > 0) {
           // Filter out products already selected
-          const existingProductIds = [...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
+          const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
           const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
           const filteredProducts = data.products.filter(product => 
             !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
@@ -2961,13 +3077,14 @@ async function loadRecommendations() {
     }
   }
   
-  // FINAL ASSEMBLY: Search-based products FIRST, then others
-  const finalProducts = [...searchBasedProducts, ...otherProducts];
+  // FINAL ASSEMBLY: Shopify ML recommendations FIRST, then search-based, then others
+  const finalProducts = [...shopifyRecommendations, ...searchBasedProducts, ...otherProducts];
   
   console.log(`🎯 Final recommendations: ${finalProducts.length} total`);
-  console.log(`   └── Search-based (TOP): ${searchBasedProducts.length}`);
+  console.log(`   └── Shopify ML (HIGHEST): ${shopifyRecommendations.length}`);
+  console.log(`   └── Search-based (SECOND): ${searchBasedProducts.length}`);
   console.log(`   └── Other sources: ${otherProducts.length}`);
-  console.log('📊 Priority: Last 2 words search → Collections → Manual → Fallback');
+  console.log('📊 Priority: Shopify ML → Last 2 words search → Collections → Manual → Fallback');
   
   if (finalProducts.length > 0) {
     renderRecommendedProducts(finalProducts, container);
@@ -3834,13 +3951,13 @@ window.isCartDrawerOpen = function() {
       "type": "collection",
       "id": "recommended_collection",
       "label": "You May Also Like Collection",
-      "info": "Select collection for recommended products. This will be the PRIMARY source for recommendations in cart drawer."
+      "info": "Select collection for recommended products. This will be used as fallback when Shopify ML recommendations are not available."
     },
     {
       "type": "text",
       "id": "recommended_title",
       "label": "Recommended Section Title",
-      "default": "FKLDAJSLFKJASKLFJASKLJFKLASJFKL"
+      "default": "You May Also Like"
     },
     {
       "type": "range",
