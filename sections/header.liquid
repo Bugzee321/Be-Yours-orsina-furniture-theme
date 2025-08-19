@@ -36,7 +36,6 @@
     --icon-weight: 1.5px;
   }
 {%- endstyle -%}
-
 <style>
   /* Single Line Header CSS - Complete Version with Full Width Mega Menu for Desktop */
   * {
@@ -2280,6 +2279,9 @@
 
 </style>
 
+<!-- Continue with rest of the template... -->
+
+
 <!-- UPDATED HEADER STRUCTURE -->
 <{% if enable_sticky_header %}sticky-header{% else %}div{% endif %} class="header-wrapper{% if enable_transparent_header %} header-transparent{% endif %}">
   <header class="header">
@@ -2434,7 +2436,7 @@
       {%- endif -%}
 
       <!-- Cart - Opens Drawer with Perfect Empty State Handling -->
-      <button class="header__icon" id="cart-icon-bubble" title="{{ 'templates.cart.cart' | t }}">
+      <button class="header__icon" id="cart-icon-bubble" onclick="openCartDrawer()" title="{{ 'templates.cart.cart' | t }}">
         <svg width="24" height="24">
           <use href="#icon-cart"></use>
         </svg>
@@ -2661,7 +2663,6 @@ window.triggerCartDrawerOpen = function() {
 
 // Open Cart Drawer with enhanced auto-opening
 function openCartDrawer() {
-  console.log('🛒 Opening cart drawer...');
   const drawer = document.getElementById('cart-drawer');
   const overlay = document.querySelector('.cart-drawer-overlay');
   
@@ -2671,19 +2672,13 @@ function openCartDrawer() {
     document.body.style.overflow = 'hidden';
     cartDrawerOpen = true;
     
-    // Load cart contents immediately
+    // Load cart contents
     loadCartDrawer();
-    console.log('✅ Cart drawer opened successfully');
-  } else {
-    console.error('❌ Cart drawer elements not found');
-    console.log('Drawer element:', drawer);
-    console.log('Overlay element:', overlay);
   }
 }
 
 // Close Cart Drawer
 function closeCartDrawer() {
-  console.log('🛒 Closing cart drawer...');
   const drawer = document.getElementById('cart-drawer');
   const overlay = document.querySelector('.cart-drawer-overlay');
   
@@ -2692,15 +2687,10 @@ function closeCartDrawer() {
     overlay.classList.remove('active');
     document.body.style.overflow = '';
     cartDrawerOpen = false;
-    console.log('✅ Cart drawer closed successfully');
   }
 }
 
-// Make functions globally available
-window.openCartDrawer = openCartDrawer;
-window.closeCartDrawer = closeCartDrawer;
-
-// Enhanced Load Recommendations - Using Shopify's Actual API Format
+// Enhanced Load Recommendations - Last 2 Words Search Products on TOP Priority
 async function loadRecommendations() {
   const recommendationsSection = document.getElementById('you-may-like-section');
   const container = document.getElementById('recommended-products-container');
@@ -2710,134 +2700,13 @@ async function loadRecommendations() {
   // Always show the recommendations section
   recommendationsSection.style.display = 'block';
   
-  let shopifyRecommendations = []; // HIGHEST PRIORITY - Shopify's ML recommendations
-  let searchBasedProducts = []; // SECOND PRIORITY - Last 2 words search results
+  let searchBasedProducts = []; // TOP PRIORITY - Last 2 words search results
   let otherProducts = []; // Other recommendations
   let targetCount = 30; // Target at least 30 products
   
-  // FIRST PRIORITY: Get Shopify's ML-based product recommendations (HIGHEST PRIORITY)
-  // This uses Shopify's machine learning to recommend products that are frequently bought together
-  // or viewed together with the products currently in the cart
+  // NEW: Extract last 2 words from cart product titles for TOP PRIORITY search
+  let searchTerms = [];
   if (cartData && cartData.items && cartData.items.length > 0) {
-    try {
-      // Take first 3 cart items for recommendations
-      const productPromises = cartData.items.slice(0, 3).map(async (item) => {
-        try {
-          const recommendationUrl = `/recommendations/products?section_id=cart-recommendations&product_id=${item.product_id}&limit=20`;
-          const response = await fetch(recommendationUrl);
-          
-          if (response.ok) {
-            const text = await response.text();
-            
-            // Create a temporary DOM element to parse the HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = text;
-            
-            // Extract product data from the HTML - Improved approach
-            const products = [];
-            
-            // Look for product cards and data attributes (Shopify standard format)
-            const productCards = tempDiv.querySelectorAll('[data-f-product-id], .card--product, .product-item');
-            
-            productCards.forEach(card => {
-              try {
-                // Get product ID and variant ID
-                const productId = card.getAttribute('data-f-product-id') || 
-                                 card.querySelector('[data-f-product-id]')?.getAttribute('data-f-product-id');
-                                 
-                const variantId = card.querySelector('[data-variant-id]')?.getAttribute('data-variant-id') ||
-                                 card.querySelector('add-to-cart')?.getAttribute('data-variant-id');
-                
-                // Get product URL and extract handle
-                const productLink = card.querySelector('a[href*="/products/"]');
-                let productHandle = '';
-                let productUrl = '';
-                
-                if (productLink) {
-                  productUrl = productLink.getAttribute('href');
-                  const urlParts = productUrl.split('/products/')[1];
-                  if (urlParts) {
-                    productHandle = urlParts.split('?')[0].split('#')[0];
-                  }
-                }
-                
-                // Get product title
-                const productTitle = card.getAttribute('data-f-product-title') ||
-                                   card.querySelector('.card-information__text, .product-title, h4, h3')?.textContent?.trim();
-                
-                // Get product image
-                const productImage = card.querySelector('img')?.getAttribute('src') ||
-                                   card.querySelector('img')?.getAttribute('data-src');
-                
-                // Get price information
-                let productPrice = 0;
-                let comparePrice = 0;
-                
-                const priceElement = card.querySelector('.price-item--regular, .price__regular');
-                if (priceElement) {
-                  const priceText = priceElement.textContent.replace(/[£$€,]/g, '').trim();
-                  productPrice = parseFloat(priceText) * 100; // Convert to cents
-                }
-                
-                const comparePriceElement = card.querySelector('.price-item--compare, .price__compare');
-                if (comparePriceElement) {
-                  const comparePriceText = comparePriceElement.textContent.replace(/[£$€,]/g, '').trim();
-                  comparePrice = parseFloat(comparePriceText) * 100;
-                }
-                
-                if (productId && productHandle && productTitle && variantId) {
-                  products.push({
-                    id: parseInt(productId),
-                    title: productTitle,
-                    handle: productHandle,
-                    url: productUrl || `/products/${productHandle}`,
-                    image: productImage,
-                    price: productPrice || 0,
-                    compare_at_price: comparePrice || 0,
-                    variant_id: parseInt(variantId),
-                    isShopifyRecommendation: true
-                  });
-                }
-              } catch (error) {
-                console.log('Error parsing product card:', error);
-              }
-            });
-            
-            return products;
-          }
-        } catch (error) {
-          console.log(`Shopify recommendations failed for product: ${item.product_id}`, error);
-        }
-        return [];
-      });
-      
-      const allRecommendationArrays = await Promise.all(productPromises);
-      const allShopifyRecs = allRecommendationArrays.flat();
-      
-      // Remove duplicates and products already in cart
-      const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const uniqueShopifyRecs = allShopifyRecs.filter((product, index, self) => 
-        index === self.findIndex(p => p.id === product.id) && 
-        !cartProductIds.includes(product.id)
-      );
-      
-      if (uniqueShopifyRecs.length > 0) {
-        shopifyRecommendations = uniqueShopifyRecs.slice(0, 15);
-        console.log('🎯 Found SHOPIFY ML recommendations:', shopifyRecommendations.length);
-        console.log('Sample recommendation:', shopifyRecommendations[0]);
-      }
-      
-    } catch (error) {
-      console.log('Error fetching Shopify recommendations:', error);
-    }
-  }
-  
-  // Calculate remaining products needed after Shopify recommendations
-  const remainingAfterShopify = targetCount - shopifyRecommendations.length;
-  
-  // SECOND PRIORITY: Extract last 2 words from cart product titles for search-based recommendations
-  let searchTerms = [];
-  if (remainingAfterShopify > 0 && cartData && cartData.items && cartData.items.length > 0) {
     cartData.items.forEach(item => {
       if (item.product_title) {
         // Extract last 2 words from product title
@@ -2854,269 +2723,8 @@ async function loadRecommendations() {
     console.log('🔍 Search terms from cart products (last 2 words):', searchTerms);
   }
   
-  // SECOND PRIORITY: Get products based on last 2 words search
-  if (remainingAfterShopify > 0 && searchTerms.length > 0) {
-    try {
-      // Use Shopify product search API
-      const searchPromises = searchTerms.slice(0, 3).map(async (searchTerm) => {
-        try {
-          // Try search suggest API first
-          const searchResponse = await fetch(`/search/suggest.json?q=${encodeURIComponent(searchTerm)}&resources[type]=product&resources[limit]=20`);
-          if (searchResponse.ok) {
-            const searchData = await searchResponse.json();
-            if (searchData.resources && searchData.resources.results && searchData.resources.results.products) {
-              return searchData.resources.results.products;
-            }
-          }
-        } catch (error) {
-          console.log(`Search suggest failed for term: ${searchTerm}`);
-        }
-        
-        // Fallback: Use collections API
-        try {
-          const response = await fetch('/collections/all/products.json?limit=100');
-          if (response.ok) {
-            const data = await response.json();
-            if (data.products) {
-              return data.products.filter(product => 
-                product.title.toLowerCase().includes(searchTerm.toLowerCase())
-              );
-            }
-          }
-        } catch (fallbackError) {
-          console.log(`Fallback search also failed for: ${searchTerm}`);
-        }
-        
-        return [];
-      });
-      
-      const searchResults = await Promise.all(searchPromises);
-      const allSearchProducts = searchResults.flat();
-      
-      // Remove duplicates and products already in cart and Shopify recommendations
-      const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const existingProductIds = shopifyRecommendations.map(p => p.id);
-      const uniqueSearchProducts = allSearchProducts.filter((product, index, self) => 
-        index === self.findIndex(p => p.id === product.id) && 
-        !cartProductIds.includes(product.id) &&
-        !existingProductIds.includes(product.id)
-      );
-      
-      if (uniqueSearchProducts.length > 0) {
-        searchBasedProducts = uniqueSearchProducts.slice(0, Math.min(remainingAfterShopify, 15)).map(product => ({
-          id: product.id,
-          title: product.title,
-          handle: product.handle,
-          price: product.variants[0].price * 100,
-          compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-          image: product.images[0] || '',
-          url: `/products/${product.handle}`,
-          variant_id: product.variants[0].id,
-          isSearchBased: true
-        }));
-        
-        console.log('🎯 Found SEARCH-BASED recommendations:', searchBasedProducts.length);
-      }
-      
-    } catch (error) {
-      console.log('Error fetching search-based products:', error);
-    }
-  }
-  
-  // Calculate remaining products needed after Shopify and search recommendations
-  const remainingNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length;
-  
-  // THIRD: Get collections from first 2 cart items (for remaining spots)
-  let cartCollections = [];
-  if (remainingNeeded > 0 && cartData && cartData.items && cartData.items.length > 0) {
-    try {
-      const firstTwoItems = cartData.items.slice(0, 2);
-      
-      // Get product details and collections for first 2 items
-      const collectionPromises = firstTwoItems.map(async (item) => {
-        try {
-          const productResponse = await fetch(`/products/${item.handle}.js`);
-          if (productResponse.ok) {
-            const productData = await productResponse.json();
-            if (productData.collections && productData.collections.length > 0) {
-              return productData.collections.map(collection => collection.handle);
-            }
-          }
-        } catch (error) {
-          console.log(`Could not fetch collections for product: ${item.handle}`);
-        }
-        return [];
-      });
-      
-      const allCollectionArrays = await Promise.all(collectionPromises);
-      cartCollections = [...new Set(allCollectionArrays.flat())];
-      
-    } catch (error) {
-      console.log('Error collecting cart collections:', error);
-    }
-  }
-  
-  // FOURTH: Try to get products from collections of first 2 cart items
-  if (remainingNeeded > 0 && cartCollections.length > 0) {
-    try {
-      const collectionPromises = cartCollections.map(async (collectionHandle) => {
-        try {
-          const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=30`);
-          if (collectionResponse.ok) {
-            const collectionData = await collectionResponse.json();
-            return collectionData.products || [];
-          }
-        } catch (error) {
-          console.log(`Could not fetch collection: ${collectionHandle}`);
-        }
-        return [];
-      });
-      
-      const collectionProducts = await Promise.all(collectionPromises);
-      const allCollectionProducts = collectionProducts.flat();
-      
-      const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id)];
-      const uniqueCollectionProducts = allCollectionProducts.filter((product, index, self) => 
-        index === self.findIndex(p => p.id === product.id) && 
-        !cartProductIds.includes(product.id) &&
-        !existingProductIds.includes(product.id)
-      );
-      
-      if (uniqueCollectionProducts.length > 0) {
-        const shuffled = uniqueCollectionProducts.sort(() => 0.5 - Math.random());
-        const additionalProducts = shuffled.slice(0, remainingNeeded).map(product => ({
-          id: product.id,
-          title: product.title,
-          handle: product.handle,
-          price: product.variants[0].price * 100,
-          compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-          image: product.images[0] || '',
-          url: `/products/${product.handle}`,
-          variant_id: product.variants[0].id,
-          isSearchBased: false
-        }));
-        
-        otherProducts = [...otherProducts, ...additionalProducts];
-        console.log('Added collection-based recommendations:', additionalProducts.length);
-      }
-      
-    } catch (error) {
-      console.log('Error fetching collection-based products:', error);
-    }
-  }
-  
-  // FIFTH: Continue with other fallbacks if needed...
-  const stillNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length - otherProducts.length;
-  
-  // Try manually selected collection
-  if (stillNeeded > 0) {
-    try {
-      const collectionHandle = '{{ section.settings.recommended_collection.handle }}';
-      if (collectionHandle && collectionHandle !== '') {
-        const collectionResponse = await fetch(`/collections/${collectionHandle}/products.json?limit=50`);
-        if (collectionResponse.ok) {
-          const collectionData = await collectionResponse.json();
-          if (collectionData.products && collectionData.products.length > 0) {
-            const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
-            const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-            const filteredProducts = collectionData.products.filter(product => 
-              !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
-            );
-            
-            const additionalProducts = filteredProducts.slice(0, stillNeeded).map(product => ({
-              id: product.id,
-              title: product.title,
-              handle: product.handle,
-              price: product.variants[0].price * 100,
-              compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-              image: product.images[0] || '',
-              url: `/products/${product.handle}`,
-              variant_id: product.variants[0].id,
-              isSearchBased: false
-            }));
-            
-            otherProducts = [...otherProducts, ...additionalProducts];
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Could not fetch from manually selected collection');
-    }
-  }
-  
-  // FINAL: Fallback to all products if still needed
-  const finalNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length - otherProducts.length;
-  if (finalNeeded > 0) {
-    try {
-      const response = await fetch('/collections/all/products.json?limit=100');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.products && data.products.length > 0) {
-          const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
-          const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-          const filteredProducts = data.products.filter(product => 
-            !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
-          );
-          
-          const shuffled = filteredProducts.sort(() => 0.5 - Math.random());
-          const additionalProducts = shuffled.slice(0, finalNeeded).map(product => ({
-            id: product.id,
-            title: product.title,
-            handle: product.handle,
-            price: product.variants[0].price * 100,
-            compare_at_price: product.variants[0].compare_at_price ? product.variants[0].compare_at_price * 100 : 0,
-            image: product.images[0] || '',
-            url: `/products/${product.handle}`,
-            variant_id: product.variants[0].id,
-            isSearchBased: false
-          }));
-          
-          otherProducts = [...otherProducts, ...additionalProducts];
-        }
-      }
-    } catch (error) {
-      console.error('Error loading fallback products:', error);
-    }
-  }
-  
-  // FINAL ASSEMBLY: Shopify ML recommendations FIRST, then search-based, then others
-  const finalProducts = [...shopifyRecommendations, ...searchBasedProducts, ...otherProducts];
-  
-  console.log(`🎯 Final recommendations: ${finalProducts.length} total`);
-  console.log(`   └── Shopify ML (HIGHEST): ${shopifyRecommendations.length}`);
-  console.log(`   └── Search-based (SECOND): ${searchBasedProducts.length}`);
-  console.log(`   └── Other sources: ${otherProducts.length}`);
-  console.log('📊 Priority: Shopify ML → Last 2 words search → Collections → Manual → Fallback');
-  
-  if (finalProducts.length > 0) {
-    renderRecommendedProducts(finalProducts, container);
-  } else {
-    container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px; font-size: 12px;">No recommendations available</p>';
-  }
-}
-  
-  // SECOND PRIORITY: Extract last 2 words from cart product titles for search-based recommendations
-  let searchTerms = [];
-  if (remainingAfterShopify > 0 && cartData && cartData.items && cartData.items.length > 0) {
-    cartData.items.forEach(item => {
-      if (item.product_title) {
-        // Extract last 2 words from product title
-        const words = item.product_title.trim().split(/\s+/);
-        if (words.length >= 2) {
-          const lastTwoWords = words.slice(-2).join(' ');
-          searchTerms.push(lastTwoWords);
-        }
-      }
-    });
-    
-    // Remove duplicates and get unique search terms
-    searchTerms = [...new Set(searchTerms)];
-    console.log('🔍 Search terms from cart products (last 2 words):', searchTerms);
-  }
-  
-  // SECOND PRIORITY: Get products based on last 2 words search
-  if (remainingAfterShopify > 0 && searchTerms.length > 0) {
+  // FIRST PRIORITY: Get products based on last 2 words search - DISPLAY ON TOP
+  if (searchTerms.length > 0) {
     try {
       // Approach 1: Use Shopify search suggest API
       const searchPromises = searchTerms.slice(0, 3).map(async (searchTerm) => {
@@ -3154,18 +2762,16 @@ async function loadRecommendations() {
       const searchResults = await Promise.all(searchPromises);
       const allSearchProducts = searchResults.flat();
       
-      // Remove duplicates and products already in cart and Shopify recommendations
+      // Remove duplicates and products already in cart
       const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const existingProductIds = shopifyRecommendations.map(p => p.id);
       const uniqueSearchProducts = allSearchProducts.filter((product, index, self) => 
         index === self.findIndex(p => p.id === product.id) && 
-        !cartProductIds.includes(product.id) &&
-        !existingProductIds.includes(product.id)
+        !cartProductIds.includes(product.id)
       );
       
       if (uniqueSearchProducts.length > 0) {
-        // Keep search products for SECOND PRIORITY DISPLAY
-        searchBasedProducts = uniqueSearchProducts.slice(0, Math.min(remainingAfterShopify, 15)).map(product => ({
+        // Keep search products for TOP DISPLAY - DON'T shuffle yet
+        searchBasedProducts = uniqueSearchProducts.slice(0, 20).map(product => ({
           id: product.id,
           title: product.title,
           handle: product.handle,
@@ -3177,7 +2783,7 @@ async function loadRecommendations() {
           isSearchBased: true // Mark as search-based for special display
         }));
         
-        console.log('🎯 Found SEARCH-BASED recommendations:', searchBasedProducts.length);
+        console.log('🎯 Found TOP PRIORITY search-based recommendations:', searchBasedProducts.length);
         console.log('📝 Search terms that produced results:', searchTerms);
       }
       
@@ -3186,10 +2792,10 @@ async function loadRecommendations() {
     }
   }
   
-  // Calculate remaining products needed after Shopify and search recommendations
-  const remainingNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length;
+  // Calculate remaining products needed
+  const remainingNeeded = targetCount - searchBasedProducts.length;
   
-  // THIRD: Get collections from first 2 cart items (for remaining spots)
+  // SECOND: Get collections from first 2 cart items (for remaining spots)
   let cartCollections = [];
   if (remainingNeeded > 0 && cartData && cartData.items && cartData.items.length > 0) {
     try {
@@ -3225,7 +2831,7 @@ async function loadRecommendations() {
     }
   }
   
-  // FOURTH: Try to get products from collections of first 2 cart items
+  // THIRD: Try to get products from collections of first 2 cart items
   if (remainingNeeded > 0 && cartCollections.length > 0) {
     try {
       // Get products from each collection with higher limits
@@ -3245,9 +2851,9 @@ async function loadRecommendations() {
       const collectionProducts = await Promise.all(collectionPromises);
       const allCollectionProducts = collectionProducts.flat();
       
-      // Remove duplicates and products already in cart, Shopify recommendations, and search results
+      // Remove duplicates and products already in cart and already selected
       const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
-      const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id)];
+      const existingProductIds = searchBasedProducts.map(p => p.id);
       const uniqueCollectionProducts = allCollectionProducts.filter((product, index, self) => 
         index === self.findIndex(p => p.id === product.id) && 
         !cartProductIds.includes(product.id) &&
@@ -3278,8 +2884,8 @@ async function loadRecommendations() {
     }
   }
   
-  // FIFTH: Continue with other fallbacks if needed...
-  const stillNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length - otherProducts.length;
+  // FOURTH: Continue with other fallbacks if needed...
+  const stillNeeded = targetCount - searchBasedProducts.length - otherProducts.length;
   
   // Try manually selected collection
   if (stillNeeded > 0) {
@@ -3291,7 +2897,7 @@ async function loadRecommendations() {
           const collectionData = await collectionResponse.json();
           if (collectionData.products && collectionData.products.length > 0) {
             // Filter out products already selected
-            const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
+            const existingProductIds = [...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
             const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
             const filteredProducts = collectionData.products.filter(product => 
               !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
@@ -3319,7 +2925,7 @@ async function loadRecommendations() {
   }
   
   // FINAL: Fallback to all products if still needed
-  const finalNeeded = targetCount - shopifyRecommendations.length - searchBasedProducts.length - otherProducts.length;
+  const finalNeeded = targetCount - searchBasedProducts.length - otherProducts.length;
   if (finalNeeded > 0) {
     try {
       const response = await fetch('/collections/all/products.json?limit=100');
@@ -3327,7 +2933,7 @@ async function loadRecommendations() {
         const data = await response.json();
         if (data.products && data.products.length > 0) {
           // Filter out products already selected
-          const existingProductIds = [...shopifyRecommendations.map(p => p.id), ...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
+          const existingProductIds = [...searchBasedProducts.map(p => p.id), ...otherProducts.map(p => p.id)];
           const cartProductIds = cartData?.items?.map(item => item.product_id) || [];
           const filteredProducts = data.products.filter(product => 
             !cartProductIds.includes(product.id) && !existingProductIds.includes(product.id)
@@ -3355,14 +2961,13 @@ async function loadRecommendations() {
     }
   }
   
-  // FINAL ASSEMBLY: Shopify ML recommendations FIRST, then search-based, then others
-  const finalProducts = [...shopifyRecommendations, ...searchBasedProducts, ...otherProducts];
+  // FINAL ASSEMBLY: Search-based products FIRST, then others
+  const finalProducts = [...searchBasedProducts, ...otherProducts];
   
   console.log(`🎯 Final recommendations: ${finalProducts.length} total`);
-  console.log(`   └── Shopify ML (HIGHEST): ${shopifyRecommendations.length}`);
-  console.log(`   └── Search-based (SECOND): ${searchBasedProducts.length}`);
+  console.log(`   └── Search-based (TOP): ${searchBasedProducts.length}`);
   console.log(`   └── Other sources: ${otherProducts.length}`);
-  console.log('📊 Priority: Shopify ML → Last 2 words search → Collections → Manual → Fallback');
+  console.log('📊 Priority: Last 2 words search → Collections → Manual → Fallback');
   
   if (finalProducts.length > 0) {
     renderRecommendedProducts(finalProducts, container);
@@ -3745,11 +3350,6 @@ window.productAddedToCart = function(productHandle = null) {
 
 // ============ EXISTING JAVASCRIPT (MEGA MENU, MOBILE MENU, ETC.) ============
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Header script loaded');
-  
-  // Initialize cart drawer immediately
-  initializeCartDrawer();
-  
   // Function to position mega menu full width and dynamically adjust
   function positionMegaMenu() {
     const header = document.querySelector('.header-wrapper');
@@ -3791,56 +3391,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-
-  // Initialize Cart Drawer Function
-  function initializeCartDrawer() {
-    console.log('🛒 Initializing cart drawer...');
-    
-    // Check if cart drawer elements exist
-    const drawer = document.getElementById('cart-drawer');
-    const overlay = document.querySelector('.cart-drawer-overlay');
-    const cartIcon = document.getElementById('cart-icon-bubble');
-    
-    console.log('Cart drawer element:', drawer);
-    console.log('Cart overlay element:', overlay);
-    console.log('Cart icon element:', cartIcon);
-    
-    if (!drawer || !overlay) {
-      console.error('❌ Cart drawer elements missing!');
-      return;
-    }
-    
-    // Set up cart icon click handler
-    if (cartIcon) {
-      cartIcon.addEventListener('click', function(e) {
-        e.preventDefault();
-        console.log('🛒 Cart icon clicked');
-        openCartDrawer();
-      });
-      console.log('✅ Cart icon click handler attached');
-    }
-    
-    // Set up overlay click handler
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) {
-        closeCartDrawer();
-      }
-    });
-    
-    // Set up close button handler
-    const closeButton = drawer.querySelector('.cart-drawer-close');
-    if (closeButton) {
-      closeButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        closeCartDrawer();
-      });
-    }
-    
-    // Load initial cart data
-    loadCartDrawer();
-    
-    console.log('✅ Cart drawer initialized successfully');
-  }
   
   // Initial positioning
   positionMegaMenu();
@@ -3878,9 +3428,8 @@ document.addEventListener('DOMContentLoaded', function() {
     positionMegaMenu();
   });
   
-  // Mobile Menu Functions - Make globally available
+  // Mobile Menu Functions
   window.toggleMobileMenu = function() {
-    console.log('📱 Toggle mobile menu');
     const menu = document.getElementById('mobile-menu');
     if (menu) {
       menu.classList.add('active');
@@ -3889,7 +3438,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   window.closeMobileMenu = function() {
-    console.log('📱 Close mobile menu');
     const menu = document.getElementById('mobile-menu');
     if (menu) {
       menu.classList.remove('active');
@@ -3918,9 +3466,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Search Modal Functions - Desktop Only - Make globally available
+  // Search Modal Functions - Desktop Only
   window.openSearchModal = function() {
-    console.log('🔍 Open search modal');
     // Check if on desktop
     if (window.innerWidth > 990) {
       const modal = document.getElementById('search-modal');
@@ -3940,7 +3487,6 @@ document.addEventListener('DOMContentLoaded', function() {
   window.closeSearchModal = function(event) {
     if (event && event.target !== event.currentTarget) return;
     
-    console.log('🔍 Close search modal');
     const modal = document.getElementById('search-modal');
     if (modal) {
       modal.classList.remove('active');
@@ -4112,35 +3658,6 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.scrollBehavior = 'smooth';
     });
   }
-  
-  // Debug function - Test cart drawer
-  window.testCartDrawer = function() {
-    console.log('🧪 Testing cart drawer...');
-    const drawer = document.getElementById('cart-drawer');
-    const overlay = document.querySelector('.cart-drawer-overlay');
-    
-    if (drawer && overlay) {
-      console.log('✅ Cart drawer elements found');
-      openCartDrawer();
-    } else {
-      console.error('❌ Cart drawer elements missing!');
-      console.log('Available elements:', {
-        drawer: !!drawer,
-        overlay: !!overlay
-      });
-    }
-  };
-  
-  // Expose for debugging
-  window.cartDrawerDebug = {
-    open: openCartDrawer,
-    close: closeCartDrawer,
-    isOpen: () => cartDrawerOpen,
-    test: window.testCartDrawer
-  };
-  
-  console.log('✅ Header script initialization complete');
-  console.log('🧪 To test cart drawer, run: window.testCartDrawer()');
 });
 
 // ============ GLOBAL CART INTEGRATION FUNCTIONS ============
@@ -4179,160 +3696,6 @@ window.refreshCartDrawer = function() {
 // Function to check if cart drawer is open
 window.isCartDrawerOpen = function() {
   return cartDrawerOpen;
-};
-
-// ============ GLOBAL PRODUCT RECOMMENDATIONS API ============
-// This function can be called from product pages or anywhere to get recommendations
-window.getProductRecommendations = async function(productId, limit = 10) {
-  try {
-    const recommendationUrl = `/recommendations/products?section_id=product-recommendations&product_id=${productId}&limit=${limit}`;
-    const response = await fetch(recommendationUrl);
-    
-    if (response.ok) {
-      const text = await response.text();
-      
-      // Create a temporary DOM element to parse the HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = text;
-      
-      // Extract product data from the HTML
-      const products = [];
-      
-      // Look for product cards with Shopify's standard data attributes
-      const productCards = tempDiv.querySelectorAll('[data-f-product-id], .card--product, .product-item');
-      
-      productCards.forEach(card => {
-        try {
-          const productId = card.getAttribute('data-f-product-id') || 
-                           card.querySelector('[data-f-product-id]')?.getAttribute('data-f-product-id');
-                           
-          const variantId = card.querySelector('[data-variant-id]')?.getAttribute('data-variant-id') ||
-                           card.querySelector('add-to-cart')?.getAttribute('data-variant-id');
-          
-          const productLink = card.querySelector('a[href*="/products/"]');
-          let productHandle = '';
-          let productUrl = '';
-          
-          if (productLink) {
-            productUrl = productLink.getAttribute('href');
-            const urlParts = productUrl.split('/products/')[1];
-            if (urlParts) {
-              productHandle = urlParts.split('?')[0].split('#')[0];
-            }
-          }
-          
-          const productTitle = card.getAttribute('data-f-product-title') ||
-                             card.querySelector('.card-information__text, .product-title, h4, h3')?.textContent?.trim();
-          
-          const productImage = card.querySelector('img')?.getAttribute('src') ||
-                             card.querySelector('img')?.getAttribute('data-src');
-          
-          let productPrice = 0;
-          let comparePrice = 0;
-          
-          const priceElement = card.querySelector('.price-item--regular, .price__regular');
-          if (priceElement) {
-            const priceText = priceElement.textContent.replace(/[£$€,]/g, '').trim();
-            productPrice = parseFloat(priceText) * 100;
-          }
-          
-          const comparePriceElement = card.querySelector('.price-item--compare, .price__compare');
-          if (comparePriceElement) {
-            const comparePriceText = comparePriceElement.textContent.replace(/[£$€,]/g, '').trim();
-            comparePrice = parseFloat(comparePriceText) * 100;
-          }
-          
-          if (productId && productHandle && productTitle && variantId) {
-            products.push({
-              id: parseInt(productId),
-              title: productTitle,
-              handle: productHandle,
-              url: productUrl || `/products/${productHandle}`,
-              image: productImage,
-              price: productPrice || 0,
-              compare_at_price: comparePrice || 0,
-              variant_id: parseInt(variantId)
-            });
-          }
-        } catch (error) {
-          console.log('Error parsing product card:', error);
-        }
-      });
-      
-      return products;
-    }
-  } catch (error) {
-    console.error('Error fetching product recommendations:', error);
-  }
-  
-  return [];
-};
-
-// Function to render recommendations anywhere on the page
-window.renderProductRecommendations = function(containerId, productId, limit = 10, title = 'You May Also Like') {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.error(`Container with ID '${containerId}' not found`);
-    return;
-  }
-  
-  // Add loading state
-  container.innerHTML = `
-    <div style="text-align: center; padding: 40px;">
-      <div style="display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #B8653C; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-      <p style="margin-top: 15px; color: #666;">Loading recommendations...</p>
-    </div>
-  `;
-  
-  // Fetch and render recommendations
-  window.getProductRecommendations(productId, limit).then(products => {
-    if (products && products.length > 0) {
-      let html = `
-        <div style="padding: 20px 0;">
-          <h3 style="text-align: center; margin-bottom: 30px; font-size: 24px; color: #333;">${title}</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto;">
-      `;
-      
-      products.forEach(product => {
-        const hasDiscount = product.compare_at_price > product.price;
-        const displayPrice = formatMoney(product.price);
-        const originalPrice = hasDiscount ? formatMoney(product.compare_at_price) : '';
-        
-        html += `
-          <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
-            <a href="${product.url}" style="text-decoration: none; color: inherit;">
-              <img src="${product.image}" alt="${product.title}" style="width: 100%; height: 200px; object-fit: cover;">
-              <div style="padding: 15px;">
-                <h4 style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.4; color: #333;">${product.title}</h4>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                  ${hasDiscount ? `<span style="text-decoration: line-through; color: #999; font-size: 14px;">${originalPrice}</span>` : ''}
-                  <span style="font-size: 18px; font-weight: 600; color: #B8653C;">${displayPrice}</span>
-                </div>
-              </div>
-            </a>
-            <div style="padding: 0 15px 15px;">
-              <button onclick="quickAddToCart(${product.variant_id}, this)" style="width: 100%; padding: 12px; background: #B8653C; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.3s ease;" onmouseover="this.style.background='#A85A3B'" onmouseout="this.style.background='#B8653C'">
-                Add to Cart
-              </button>
-            </div>
-          </div>
-        `;
-      });
-      
-      html += `
-          </div>
-        </div>
-      `;
-      
-      container.innerHTML = html;
-    } else {
-      container.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: #666;">
-          <p>No recommendations available at the moment.</p>
-        </div>
-      `;
-    }
-  });
 };
 </script>
 
@@ -4471,13 +3834,13 @@ window.renderProductRecommendations = function(containerId, productId, limit = 1
       "type": "collection",
       "id": "recommended_collection",
       "label": "You May Also Like Collection",
-      "info": "Select collection for recommended products. This will be used as fallback when Shopify ML recommendations are not available."
+      "info": "Select collection for recommended products. This will be the PRIMARY source for recommendations in cart drawer."
     },
     {
       "type": "text",
       "id": "recommended_title",
       "label": "Recommended Section Title",
-      "default": "You May Also Like"
+      "default": "FKLDAJSLFKJASKLFJASKLJFKLASJFKL"
     },
     {
       "type": "range",
