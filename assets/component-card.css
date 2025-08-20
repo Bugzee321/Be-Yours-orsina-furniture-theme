@@ -882,7 +882,7 @@
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  bottom: auto;
+  bottom: -60px;
   left: auto;
   transform: none;
   margin: 0;
