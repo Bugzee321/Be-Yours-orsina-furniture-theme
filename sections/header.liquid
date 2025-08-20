@@ -2418,6 +2418,7 @@
     </div>
 
     <!-- RIGHT: Search (Desktop Only) + Account + Cart Icons -->
+    <!-- RIGHT: Search + Wishlist + Compare + Account + Cart Icons -->
     <div class="header__right">
       <!-- Search Icon - Desktop Only -->
       <button class="header__icon search-modal-toggle" onclick="openSearchModal()" title="{{ 'general.search.search' | t }}">
@@ -2425,7 +2426,19 @@
           <use href="#icon-search"></use>
         </svg>
       </button>
-      
+           
+
+      <!-- Wishlist -->
+      <a href="/pages/wishlist" class="header__icon" title="Wishlist">
+        {% render 'icon', icon: 'heart' %}
+      </a>
+
+      <!-- Compare -->
+      <button class="header__icon compare-toggle" onclick="toggleComparePopup()" title="Compare products">
+        {% render 'icon', icon: 'compare' %}
+      </button>
+
+ 
       <!-- Account -->
       {%- if shop.customer_accounts_enabled -%}
         <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon" title="{%- if customer -%}{{ 'customer.account_fallback' | t }}{%- else -%}{{ 'customer.log_in' | t }}{%- endif -%}">
@@ -2447,6 +2460,17 @@
     </div>
   </header>
 </{% if enable_sticky_header %}sticky-header{% else %}div{% endif %}>
+
+<!-- Compare Products Popup -->
+<div id="compare-popup" class="compare-popup hidden">
+  <div class="compare-overlay" onclick="toggleComparePopup()"></div>
+  <div class="compare-modal">
+    <button class="compare-close" onclick="toggleComparePopup()">{% render 'icon', icon: 'close' %}</button>
+    <h3>Compare Products</h3>
+    <div id="compare-content">Loading...</div>
+  </div>
+</div>
+
 
 <!-- Enhanced Cart Drawer HTML -->
 <div class="cart-drawer-overlay" onclick="closeCartDrawer()"></div>
@@ -3697,6 +3721,52 @@ window.refreshCartDrawer = function() {
 window.isCartDrawerOpen = function() {
   return cartDrawerOpen;
 };
+
+
+
+async function toggleComparePopup() {
+  const popup = document.getElementById('compare-popup');
+  if (!popup) return;
+  popup.classList.toggle('hidden');
+  if (!popup.classList.contains('hidden')) {
+    await loadCompareProducts();
+  }
+}
+
+async function loadCompareProducts() {
+  const container = document.getElementById('compare-content');
+  if (!container) return;
+  container.innerHTML = 'Loading...';
+  try {
+    const cartRes = await fetch('/cart.js');
+    const cart = await cartRes.json();
+    if (!cart.items.length) {
+      container.innerHTML = '<p>Your cart is empty.</p>';
+      return;
+    }
+    const handle = cart.items[0].handle;
+    const prodRes = await fetch(`/products/${handle}.js`);
+    const product = await prodRes.json();
+    const range = product.metafields?.custom?.range;
+    if (!range) {
+      container.innerHTML = '<p>No related products found.</p>';
+      return;
+    }
+    const handles = range.split(',');
+    const related = await Promise.all(handles.map(async (h) => {
+      const res = await fetch(`/products/${h.trim()}.js`);
+      return res.ok ? res.json() : null;
+    }));
+    const items = related.filter(p => p);
+    if (!items.length) {
+      container.innerHTML = '<p>No related products found.</p>';
+      return;
+    }
+    container.innerHTML = items.map(p => `<a href="/products/${p.handle}" class="compare-item"><img src="${p.featured_image}" alt="${p.title}"><span>${p.title}</span></a>`).join('');
+  } catch (e) {
+    container.innerHTML = '<p>Error loading products.</p>';
+  }
+}
 </script>
 
 <!-- Sticky Header JavaScript -->
