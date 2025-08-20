@@ -1,0 +1,64 @@
+const STORAGE_KEY = 'themeWishlistHandles';
+
+function getHandles() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveHandles(handles) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(handles));
+}
+
+function updateWishlistButtons() {
+  const handles = getHandles();
+  document.querySelectorAll('[data-wishlist-add]').forEach((btn) => {
+    const handle = btn.getAttribute('data-wishlist-add');
+    btn.classList.toggle('active', handles.includes(handle));
+  });
+}
+
+function toggleWishlist(handle) {
+  let handles = getHandles();
+  const index = handles.indexOf(handle);
+  if (index === -1) {
+    handles.push(handle);
+  } else {
+    handles.splice(index, 1);
+  }
+  saveHandles(handles);
+  updateWishlistButtons();
+}
+
+document.addEventListener('click', (event) => {
+  const trigger = event.target.closest('[data-wishlist-add]');
+  if (!trigger) return;
+  event.preventDefault();
+  const handle = trigger.getAttribute('data-wishlist-add');
+  toggleWishlist(handle);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateWishlistButtons();
+  renderWishlistPage();
+});
+
+function renderWishlistPage() {
+  const container = document.querySelector('[data-wishlist-items]');
+  if (!container) return;
+  const handles = getHandles();
+  if (!handles.length) {
+    container.innerHTML = '<p>Your wishlist is empty.</p>';
+    return;
+  }
+  Promise.all(
+    handles.map((handle) =>
+      fetch(`/products/${handle}?view=card-product`).then((res) => res.text())
+    )
+  ).then((cards) => {
+    container.innerHTML = cards.join('');
+    updateWishlistButtons();
+  });
+}

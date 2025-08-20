@@ -468,6 +468,11 @@
     </div>
   </div>
 
+  </div>
+
+  <button class="wishlist-button" type="button" data-wishlist-add="{{ card_product.handle }}">
+    {% render 'icon', icon: 'wishlist' %}
+  </button>
   <div class="card__badge">
     {%- if card_product.metafields.theme.label.value != blank -%}
       {%- capture badge_styles -%}
