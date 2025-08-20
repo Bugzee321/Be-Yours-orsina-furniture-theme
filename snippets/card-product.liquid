@@ -210,6 +210,15 @@
 {{ 'component-rating.css' | asset_url | stylesheet_tag }}
 
 <div class="card-wrapper">
+  <!-- Wishlist Badge (top right) -->
+  <a href="/pages/wishlist?add={{ card_product.handle }}" 
+     class="card__badge card__badge--wishlist" 
+     title="Add to Wishlist" 
+     aria-label="Add to Wishlist">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+      <path d="M10 17s-6-4.35-6-8.5A4.5 4.5 0 0 1 10 4a4.5 4.5 0 0 1 6 4.5C16 12.65 10 17 10 17z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+    </svg>
+  </a>
   <use-animate data-animate="zoom-fade-small" class="card card--product{% if card_product.featured_media == nil %} card--text{% endif %}" tabindex="-1">
     {%- if card_product.featured_media -%}
       {%- liquid
