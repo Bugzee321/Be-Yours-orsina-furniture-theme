@@ -635,101 +635,85 @@
     cursor: grabbing;
   }
 }
-/* Updated Wishlist Badge System - Bottom Position + Transparent Background */
+/* Wishlist Badge - Inside Product Image Top Right */
 
-/* Card Wrapper - Make sure product cards are positioned relative */
-.card-wrapper,
-.product-card,
-.card,
-.product-item {
-  position: relative;
+/* Make sure product image containers are positioned relative */
+.card__media,
+.product-image,
+.card-image,
+.media,
+.product-card__image,
+.image-wrapper {
+  position: relative !important;
 }
 
-/* Main Wishlist Badge Styling - Bottom Right + Transparent */
+/* Main Wishlist Badge Styling - Inside Image Top Right */
 .card__badge--wishlist {
   position: absolute;
-  bottom: 0.75rem;
+  top: 0.75rem;
   right: 0.75rem;
-  z-index: 10;
-  background: transparent;
-  backdrop-filter: none;
-  border: 1px solid rgba(var(--color-border, 210, 213, 217), 0.8);
+  z-index: 15;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--color-border, 210, 213, 217), 0.3);
   border-radius: 50%;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-decoration: none;
   color: rgba(var(--color-foreground, 40, 40, 40), 0.8);
   opacity: 1;
   visibility: visible;
 }
 
-/* When Add to Cart button appears, move wishlist badge up */
-.card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist,
-.card-wrapper:has(.product-form:not(.hidden)) .card__badge--wishlist,
-.card-wrapper:has(.btn-add-to-cart:not(.hidden)) .card__badge--wishlist,
-.card-wrapper:has(.card__content .button:not(.hidden)) .card__badge--wishlist,
-.card-wrapper.has-add-to-cart .card__badge--wishlist {
-  transform: translateY(-50px);
+/* Ensure badge stays inside image bounds */
+.card__media .card__badge--wishlist,
+.product-image .card__badge--wishlist,
+.card-image .card__badge--wishlist,
+.media .card__badge--wishlist {
+  top: 0.75rem;
+  right: 0.75rem;
+  bottom: auto;
+  left: auto;
+  transform: none;
 }
 
-/* Hover State - Use theme colors */
+/* Hover State - Enhanced visibility on image */
 .card__badge--wishlist:hover {
-  background: rgba(var(--color-background, 248, 246, 243), 0.9);
-  border-color: rgba(var(--color-border, 210, 213, 217), 1);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 15px rgba(var(--color-border, 210, 213, 217), 0.3);
-  color: rgba(var(--color-foreground, 40, 40, 40), 1);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(var(--color-button, 184, 101, 60), 0.5);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: rgba(var(--color-button, 184, 101, 60), 1);
 }
 
-/* When add to cart is visible AND hovering wishlist */
-.card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist:hover,
-.card-wrapper:has(.product-form:not(.hidden)) .card__badge--wishlist:hover,
-.card-wrapper.has-add-to-cart .card__badge--wishlist:hover {
-  transform: translateY(-52px) scale(1.05);
-}
-
-/* Active/Added to Wishlist State - Use theme highlight color */
+/* Active/Added to Wishlist State */
 .card__badge--wishlist.active,
 .card__badge--wishlist.in-wishlist {
-  background: rgba(var(--color-button, 184, 101, 60), 0.1);
-  border-color: rgba(var(--color-button, 184, 101, 60), 0.8);
-  color: rgba(var(--color-button, 184, 101, 60), 1);
+  background: rgba(var(--color-button, 184, 101, 60), 0.95);
+  border-color: rgba(var(--color-button, 184, 101, 60), 1);
+  color: #fff;
   transform: scale(1.05);
 }
 
 .card__badge--wishlist.active:hover,
 .card__badge--wishlist.in-wishlist:hover {
-  background: rgba(var(--color-button, 184, 101, 60), 0.2);
-  border-color: rgba(var(--color-button, 184, 101, 60), 1);
-  transform: translateY(-2px) scale(1.1);
-  box-shadow: 0 4px 15px rgba(var(--color-button, 184, 101, 60), 0.3);
+  background: rgba(var(--color-button, 184, 101, 60), 1);
+  transform: scale(1.15);
+  box-shadow: 0 4px 15px rgba(var(--color-button, 184, 101, 60), 0.4);
 }
 
-/* When add to cart is visible AND wishlist is active */
-.card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist.active,
-.card-wrapper:has(.product-form:not(.hidden)) .card__badge--wishlist.active,
-.card-wrapper.has-add-to-cart .card__badge--wishlist.active {
-  transform: translateY(-50px) scale(1.05);
-}
-
-.card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist.active:hover,
-.card-wrapper:has(.product-form:not(.hidden)) .card__badge--wishlist.active:hover,
-.card-wrapper.has-add-to-cart .card__badge--wishlist.active:hover {
-  transform: translateY(-52px) scale(1.1);
-}
-
-/* Wishlist Icon Styling */
+/* Icon styling */
 .card__badge--wishlist svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   transition: all 0.3s ease;
-  stroke-width: 1.5;
+  stroke-width: 1.8;
 }
 
 .card__badge--wishlist:hover svg {
@@ -740,12 +724,13 @@
 .card__badge--wishlist.in-wishlist svg {
   fill: currentColor;
   stroke: currentColor;
+  stroke-width: 1.5;
 }
 
 /* Loading State */
 .card__badge--wishlist.loading {
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .card__badge--wishlist.loading svg {
@@ -759,168 +744,166 @@
 
 /* Success Animation */
 .card__badge--wishlist.added {
-  animation: wishlistPulse 0.6s ease-out;
+  animation: wishlistImagePulse 0.6s ease-out;
 }
 
-@keyframes wishlistPulse {
+@keyframes wishlistImagePulse {
   0% { transform: scale(1.05); }
-  50% { transform: scale(1.2); }
+  50% { transform: scale(1.25); }
   100% { transform: scale(1.05); }
 }
 
-/* When add to cart is visible AND animation plays */
-.card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist.added,
-.card-wrapper.has-add-to-cart .card__badge--wishlist.added {
-  animation: wishlistPulseWithTranslate 0.6s ease-out;
+/* Different image container support */
+.card__media .card__badge--wishlist {
+  top: 1rem;
+  right: 1rem;
 }
 
-@keyframes wishlistPulseWithTranslate {
-  0% { transform: translateY(-50px) scale(1.05); }
-  50% { transform: translateY(-50px) scale(1.2); }
-  100% { transform: translateY(-50px) scale(1.05); }
+.product-card__image .card__badge--wishlist {
+  top: 0.75rem;
+  right: 0.75rem;
 }
 
-/* Theme-aware styling for different color schemes */
-.color-scheme-1 .card__badge--wishlist {
-  border-color: rgba(var(--color-border), 0.6);
-  color: rgba(var(--color-foreground), 0.8);
+.image-wrapper .card__badge--wishlist {
+  top: 0.75rem;
+  right: 0.75rem;
 }
 
-.color-scheme-2 .card__badge--wishlist {
-  border-color: rgba(var(--color-border), 0.6);
-  color: rgba(var(--color-foreground), 0.8);
+/* Make sure badge doesn't interfere with image */
+.card__media,
+.product-image,
+.card-image,
+.media {
+  overflow: hidden;
 }
 
-.color-scheme-3 .card__badge--wishlist {
-  border-color: rgba(var(--color-border), 0.6);
-  color: rgba(var(--color-foreground), 0.8);
+/* Ensure badge is above image but below other overlays */
+.card__badge--wishlist {
+  z-index: 15;
 }
 
-/* Dark theme support */
-@media (prefers-color-scheme: dark) {
-  .card__badge--wishlist {
-    background: transparent;
-    border-color: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.8);
-  }
-  
-  .card__badge--wishlist:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: rgba(255, 255, 255, 1);
-  }
+/* Keep below sale badges and other important overlays */
+.card__badge--sale,
+.badge--sale,
+.product-badge {
+  z-index: 20;
 }
 
-/* Responsive Design */
+/* Responsive sizing */
 @media screen and (max-width: 768px) {
   .card__badge--wishlist {
-    width: 38px;
-    height: 38px;
-    bottom: 0.5rem;
+    width: 36px;
+    height: 36px;
+    top: 0.5rem;
     right: 0.5rem;
-  }
-  
-  .card__badge--wishlist svg {
-    width: 16px;
-    height: 16px;
-  }
-  
-  /* Smaller translate distance on mobile */
-  .card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist,
-  .card-wrapper:has(.product-form:not(.hidden)) .card__badge--wishlist,
-  .card-wrapper.has-add-to-cart .card__badge--wishlist {
-    transform: translateY(-45px);
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .card__badge--wishlist {
-    width: 34px;
-    height: 34px;
-    bottom: 0.4rem;
-    right: 0.4rem;
   }
   
   .card__badge--wishlist svg {
     width: 14px;
     height: 14px;
   }
+}
+
+@media screen and (max-width: 480px) {
+  .card__badge--wishlist {
+    width: 32px;
+    height: 32px;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
   
-  /* Even smaller translate distance on small mobile */
-  .card-wrapper:has(.quick-add-button:not(.hidden)) .card__badge--wishlist,
-  .card-wrapper:has(.product-form:not(.hidden)) .card__badge--wishlist,
-  .card-wrapper.has-add-to-cart .card__badge--wishlist {
-    transform: translateY(-40px);
+  .card__badge--wishlist svg {
+    width: 12px;
+    height: 12px;
   }
 }
 
-/* Special styling for different card layouts */
-.card--standard .card__badge--wishlist,
-.card--card .card__badge--wishlist {
-  bottom: 1rem;
+/* Specific theme compatibility */
+.card--standard .card__media .card__badge--wishlist {
+  top: 1rem;
   right: 1rem;
 }
 
 .card--media .card__badge--wishlist {
-  bottom: 0.75rem;
+  top: 0.75rem;
   right: 0.75rem;
 }
 
-/* ALWAYS VISIBLE - Remove any hidden states */
+/* For themes with different image structures */
+.product-card-wrapper .product-image .card__badge--wishlist,
+.product-item .product-image .card__badge--wishlist {
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+/* Dawn theme specific */
+.card-wrapper .card__media .card__badge--wishlist {
+  top: 1rem;
+  right: 1rem;
+}
+
+/* Make sure it works with lazy loading images */
+.card__media img[loading],
+.product-image img[loading] {
+  position: relative;
+}
+
+/* Ensure badge shows above placeholder images */
+.card__badge--wishlist {
+  z-index: 15 !important;
+}
+
+/* Override any hiding on hover - always visible */
 .card__badge--wishlist {
   opacity: 1 !important;
   visibility: visible !important;
 }
 
-/* Override any theme-specific hiding */
-.product-grid .card__badge--wishlist,
-.collection-grid .card__badge--wishlist,
-.product-recommendations .card__badge--wishlist {
+/* Collection/grid specific adjustments */
+.collection-grid .card__media .card__badge--wishlist,
+.product-grid .card__media .card__badge--wishlist {
   opacity: 1 !important;
   visibility: visible !important;
 }
 
-/* Ensure it doesn't interfere with add to cart button */
-.card__content {
+/* Fix for themes that might have conflicting positioning */
+.card-wrapper:has(.card__media) .card__badge--wishlist {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+/* Ensure proper positioning relative to parent image container */
+.card__media {
   position: relative;
 }
 
-/* Make sure add to cart button has proper z-index */
-.quick-add-button,
-.product-form,
-.btn-add-to-cart,
-.card__content .button {
-  z-index: 5;
-  position: relative;
+.card__media .card__badge--wishlist {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  margin: 0;
 }
 
-/* Additional safety for always visible */
-.card__badge--wishlist:not(.hidden) {
-  display: flex !important;
+/* Handle different aspect ratios */
+.card__media--square .card__badge--wishlist,
+.card__media--portrait .card__badge--wishlist,
+.card__media--landscape .card__badge--wishlist {
+  top: 0.75rem;
+  right: 0.75rem;
 }
 
-/* Handle different card structures */
-.card-information .card__badge--wishlist {
-  bottom: 60px; /* Account for product info space */
+/* Dark overlay compatibility */
+.card__media:has(.overlay) .card__badge--wishlist {
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.95);
 }
 
-.card-information:has(.price) .card__badge--wishlist {
-  bottom: 80px; /* Account for price space */
-}
-
-/* When card has badges/labels at bottom, adjust position */
-.card-wrapper:has(.card__badge) .card__badge--wishlist:not(.card__badge) {
-  bottom: 3rem; /* Move up if other badges present */
-}
-
-/* Integration with your existing theme CSS variables */
-.card__badge--wishlist {
-  /* Use your theme's CSS variables if they exist */
-  border-color: var(--gradient-border-background, rgba(var(--color-border, 210, 213, 217), 0.8));
-  color: var(--gradient-foreground, rgba(var(--color-foreground, 40, 40, 40), 0.8));
-}
-
-.card__badge--wishlist:hover {
-  background: var(--gradient-background, rgba(var(--color-background, 248, 246, 243), 0.9));
-  border-color: var(--gradient-border-background, rgba(var(--color-border, 210, 213, 217), 1));
+/* Video/media compatibility */
+.card__media video + .card__badge--wishlist,
+.card__media .media + .card__badge--wishlist {
+  z-index: 30;
 }

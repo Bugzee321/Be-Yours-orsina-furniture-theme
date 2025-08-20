@@ -209,62 +209,172 @@
 
 {{ 'component-rating.css' | asset_url | stylesheet_tag }}
 
-<div class="card-wrapper">
-  <!-- Wishlist Badge HTML - Add this to your product card template -->
-<!-- This should go in your product card template file (usually card-product.liquid) -->
+<!-- Updated Product Card HTML - Wishlist Badge Inside Image -->
 
+<!-- Method 1: For most themes (card-product.liquid) -->
 <div class="card-wrapper">
-  <!-- Your existing product card content -->
-  
-  <!-- Wishlist Badge - Add this inside your product card -->
-  <button 
-    class="card__badge--wishlist" 
-    data-product-id="{{ product.id }}"
-    data-product-handle="{{ product.handle }}"
-    onclick="toggleWishlist({{ product.id }}, '{{ product.handle }}', this)"
-    title="Add to Wishlist"
-    aria-label="Add {{ product.title | escape }} to wishlist">
+  <div class="card__media">
+    <!-- Product Image -->
+    <img src="{{ product.featured_image | image_url }}" alt="{{ product.title }}" loading="lazy">
     
-    <!-- Heart Icon SVG -->
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
-            stroke="currentColor" 
-            stroke-width="1.5" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"/>
-    </svg>
-  </button>
-  
-  <!-- Rest of your product card content -->
-</div>
-
-<!-- Alternative: If you want to use it in collection pages -->
-<!-- Add this to your collection-product-card.liquid or wherever you display products -->
-
-{%- for product in collection.products -%}
-  <div class="card-wrapper product-card">
-    <!-- Wishlist Badge -->
+    <!-- Wishlist Badge - INSIDE IMAGE CONTAINER -->
     <button 
       class="card__badge--wishlist" 
       data-product-id="{{ product.id }}"
       data-product-handle="{{ product.handle }}"
       onclick="toggleWishlist({{ product.id }}, '{{ product.handle }}', this)"
-      title="Add to Wishlist">
+      title="Add to Wishlist"
+      aria-label="Add {{ product.title | escape }} to wishlist">
       
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
               stroke="currentColor" 
-              stroke-width="1.5" 
+              stroke-width="1.8" 
               stroke-linecap="round" 
               stroke-linejoin="round"/>
       </svg>
     </button>
+  </div>
+  
+  <!-- Product Info (Outside Image) -->
+  <div class="card__content">
+    <h3 class="card__heading">{{ product.title }}</h3>
+    <div class="price">{{ product.price | money }}</div>
+    <!-- Add to cart button etc. -->
+  </div>
+</div>
+
+<!-- Method 2: For Dawn theme -->
+<div class="card-wrapper underline-links-hover">
+  <div class="card card--{{ settings.card_style }}{% if product.featured_media == nil %} card--text{% endif %}{% if settings.card_style == 'card' %} color-{{ settings.card_color_scheme }} gradient{% endif %}{% if product.featured_media != nil and settings.card_style == 'card' %} ratio{% endif %}" style="--ratio-percent: {{ 1 | divided_by: product.featured_media.aspect_ratio | times: 100 }}%;">
     
-    <!-- Your existing product content (image, title, price, etc.) -->
-    <div class="card__inner">
-      <!-- Product image, title, price etc. -->
+    <div class="card__inner{% if settings.card_style == 'standard' %} color-{{ settings.card_color_scheme }} gradient{% endif %}{% if product.featured_media or settings.card_style == 'standard' %} ratio{% endif %}" style="--ratio-percent: {{ 1 | divided_by: product.featured_media.aspect_ratio | times: 100 }}%;">
+      
+      {%- if product.featured_media -%}
+        <div class="card__media">
+          <div class="media media--transparent media--hover-effect">
+            <img src="{{ product.featured_media | image_url: width: 533 }}" alt="{{ product.featured_media.alt | escape }}" class="motion-reduce" loading="lazy" width="{{ product.featured_media.width }}" height="{{ product.featured_media.height }}">
+          </div>
+          
+          <!-- Wishlist Badge - INSIDE IMAGE MEDIA -->
+          <button 
+            class="card__badge--wishlist" 
+            data-product-id="{{ product.id }}"
+            data-product-handle="{{ product.handle }}"
+            onclick="toggleWishlist({{ product.id }}, '{{ product.handle }}', this)"
+            title="Add to Wishlist">
+            
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+                    stroke="currentColor" 
+                    stroke-width="1.8" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+      
+      <div class="card__content">
+        <!-- Product title, price etc. -->
+      </div>
     </div>
   </div>
+</div>
+
+<!-- Method 3: For Collection pages -->
+{%- for product in collection.products -%}
+  <div class="card-wrapper product-card">
+    <div class="product-image card__media">
+      <a href="{{ product.url }}">
+        <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
+      </a>
+      
+      <!-- Wishlist Badge - INSIDE IMAGE -->
+      <button 
+        class="card__badge--wishlist" 
+        data-product-id="{{ product.id }}"
+        data-product-handle="{{ product.handle }}"
+        onclick="toggleWishlist({{ product.id }}, '{{ product.handle }}', this)"
+        title="Add to Wishlist">
+        
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+                stroke="currentColor" 
+                stroke-width="1.8" 
+                stroke-linecap="round" 
+                stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="product-info card__content">
+      <h3><a href="{{ product.url }}">{{ product.title }}</a></h3>
+      <div class="price">{{ product.price | money }}</div>
+    </div>
+  </div>
+{%- endfor -%}
+
+<!-- Method 4: Universal approach - Find and modify existing structure -->
+<script>
+// JavaScript to automatically place wishlist badges in image containers
+document.addEventListener('DOMContentLoaded', function() {
+  // Find all product cards that don't have wishlist badges yet
+  const productCards = document.querySelectorAll('.card-wrapper, .product-card, .card');
+  
+  productCards.forEach(card => {
+    // Skip if already has wishlist badge
+    if (card.querySelector('.card__badge--wishlist')) return;
+    
+    // Find image container
+    const imageContainer = card.querySelector('.card__media, .product-image, .card-image, .media, .image-wrapper');
+    
+    if (imageContainer) {
+      // Get product data
+      const productLink = card.querySelector('a[href*="/products/"]');
+      if (!productLink) return;
+      
+      const productHandle = productLink.getAttribute('href').split('/products/')[1].split('?')[0];
+      const productId = card.getAttribute('data-product-id') || 
+                       imageContainer.getAttribute('data-product-id') ||
+                       productLink.getAttribute('data-product-id');
+      
+      if (productId && productHandle) {
+        // Create wishlist badge
+        const wishlistBadge = document.createElement('button');
+        wishlistBadge.className = 'card__badge--wishlist';
+        wishlistBadge.setAttribute('data-product-id', productId);
+        wishlistBadge.setAttribute('data-product-handle', productHandle);
+        wishlistBadge.setAttribute('title', 'Add to Wishlist');
+        wishlistBadge.onclick = function() {
+          toggleWishlist(productId, productHandle, this);
+        };
+        
+        wishlistBadge.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+                  stroke="currentColor" 
+                  stroke-width="1.8" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"/>
+          </svg>
+        `;
+        
+        // Make sure image container is positioned relative
+        imageContainer.style.position = 'relative';
+        
+        // Add badge to image container
+        imageContainer.appendChild(wishlistBadge);
+      }
+    }
+  });
+  
+  // Initialize wishlist states
+  if (typeof initializeWishlistBadges === 'function') {
+    initializeWishlistBadges();
+  }
+});
+</script>
 {%- endfor -%}
   <use-animate data-animate="zoom-fade-small" class="card card--product{% if card_product.featured_media == nil %} card--text{% endif %}" tabindex="-1">
     {%- if card_product.featured_media -%}
@@ -685,6 +795,9 @@ window.clearWishlist = clearWishlist;
 window.exportWishlist = exportWishlist;
 window.importWishlist = importWishlist;
 window.updateWishlistCount = updateWishlistCount;
+
+
+
           </noscript>
           
           {%- liquid 
