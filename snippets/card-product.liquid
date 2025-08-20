@@ -515,6 +515,119 @@ window.toggleWishlist = toggleWishlist;
 window.getWishlistItems = getWishlistItems;
 window.clearWishlist = clearWishlist;
 
+// Wishlist Position Controller - Add this to handle add to cart button detection
+
+document.addEventListener('DOMContentLoaded', function() {
+  initializeWishlistPositioning();
+  
+  // Watch for add to cart buttons appearing/disappearing
+  observeAddToCartButtons();
+});
+
+function initializeWishlistPositioning() {
+  const productCards = document.querySelectorAll('.card-wrapper, .product-card, .card');
+  
+  productCards.forEach(card => {
+    checkAndUpdateWishlistPosition(card);
+  });
+}
+
+function checkAndUpdateWishlistPosition(card) {
+  const addToCartSelectors = [
+    '.quick-add-button:not(.hidden)',
+    '.product-form:not(.hidden)', 
+    '.btn-add-to-cart:not(.hidden)',
+    '.card__content .button:not(.hidden)',
+    '.product-form__buttons:not(.hidden)',
+    '.quick-add:not(.hidden)',
+    '[data-action="add-to-cart"]:not(.hidden)'
+  ];
+  
+  let hasVisibleAddToCart = false;
+  
+  // Check if any add to cart button is visible
+  addToCartSelectors.forEach(selector => {
+    if (card.querySelector(selector)) {
+      hasVisibleAddToCart = true;
+    }
+  });
+  
+  // Add or remove class based on add to cart visibility
+  if (hasVisibleAddToCart) {
+    card.classList.add('has-add-to-cart');
+  } else {
+    card.classList.remove('has-add-to-cart');
+  }
+}
+
+function observeAddToCartButtons() {
+  // Create a mutation observer to watch for changes
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'attributes' || mutation.type === 'childList') {
+        // Find the closest product card
+        let card = mutation.target.closest('.card-wrapper, .product-card, .card');
+        if (card) {
+          checkAndUpdateWishlistPosition(card);
+        }
+      }
+    });
+  });
+  
+  // Observe all product cards
+  const productCards = document.querySelectorAll('.card-wrapper, .product-card, .card');
+  productCards.forEach(card => {
+    observer.observe(card, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['class', 'style', 'hidden']
+    });
+  });
+  
+  // Also watch for hover events that might show/hide add to cart
+  productCards.forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
+    });
+  });
+}
+
+// Alternative method: Manual class toggle for specific themes
+function handleQuickAddVisibility() {
+  // Listen for quick-add button visibility changes
+  document.addEventListener('click', function(e) {
+    // If clicking on quick-add trigger
+    if (e.target.matches('.quick-add-trigger, .quick-shop, .quick-view')) {
+      const card = e.target.closest('.card-wrapper, .product-card, .card');
+      if (card) {
+        setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
+      }
+    }
+  });
+  
+  // Listen for form submissions that might change button states
+  document.addEventListener('submit', function(e) {
+    if (e.target.matches('.product-form, form[action*="/cart/add"]')) {
+      const card = e.target.closest('.card-wrapper, .product-card, .card');
+      if (card) {
+        setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
+      }
+    }
+  });
+}
+
+// Initialize the manual handler
+handleQuickAddVisibility();
+
+// Export for manual control if needed
+window.updateWishlistPosition = checkAndUpdateWishlistPosition;
+window.initializeWishlistPositioning = initializeWishlistPositioning;
+
 
           <noscript>
             <div class="card deferred-media__poster">
