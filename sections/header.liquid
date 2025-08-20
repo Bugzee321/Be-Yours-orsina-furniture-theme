@@ -2277,6 +2277,149 @@
     background: rgba(var(--color-highlight), 0.8);
   }
 
+
+  /* Compare Products Popup Styles - Add this in your style section */
+.compare-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.3s ease;
+}
+
+.compare-popup.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.compare-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+}
+
+.compare-modal {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(1);
+  transition: transform 0.3s ease;
+}
+
+.compare-popup.hidden .compare-modal {
+  transform: scale(0.9);
+}
+
+.compare-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.compare-close:hover {
+  background-color: #f5f5f5;
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.compare-modal h3 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+#compare-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.compare-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.compare-item:hover {
+  border-color: rgb(var(--color-highlight));
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.compare-item img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.compare-item span {
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.4;
+}
+
+@media screen and (max-width: 768px) {
+  .compare-modal {
+    padding: 20px;
+    margin: 20px;
+  }
+  
+  #compare-content {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  
+  .compare-item img {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+
+
 </style>
 
 <!-- Continue with rest of the template... -->
@@ -2419,53 +2562,59 @@
 
     <!-- RIGHT: Search (Desktop Only) + Account + Cart Icons -->
     <!-- RIGHT: Search + Wishlist + Compare + Account + Cart Icons -->
-    <div class="header__right">
-      <!-- Search Icon - Desktop Only -->
-      <button class="header__icon search-modal-toggle" onclick="openSearchModal()" title="{{ 'general.search.search' | t }}">
-        <svg width="24" height="24">
-          <use href="#icon-search"></use>
-        </svg>
-      </button>
+<div class="header__right">
+  <!-- Search Icon - Desktop Only -->
+  <button class="header__icon search-modal-toggle" onclick="openSearchModal()" title="{{ 'general.search.search' | t }}">
+    <svg width="24" height="24">
+      <use href="#icon-search"></use>
+    </svg>
+  </button>
            
+  <!-- Wishlist with modern icon -->
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist">
+    <svg width="24" height="24">
+      <use href="#icon-heart"></use>
+    </svg>
+  </a>
 
-      <!-- Wishlist -->
-      <a href="/pages/wishlist" class="header__icon" title="Wishlist">
-        {% render 'icon', icon: 'heart' %}
-      </a>
+  <!-- Compare with modern icon -->
+  <button class="header__icon compare-toggle" onclick="toggleComparePopup()" title="Compare products">
+    <svg width="24" height="24">
+      <use href="#icon-compare"></use>
+    </svg>
+  </button>
 
-      <!-- Compare -->
-      <button class="header__icon compare-toggle" onclick="toggleComparePopup()" title="Compare products">
-        {% render 'icon', icon: 'compare' %}
-      </button>
+  <!-- Account -->
+  {%- if shop.customer_accounts_enabled -%}
+    <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon" title="{%- if customer -%}{{ 'customer.account_fallback' | t }}{%- else -%}{{ 'customer.log_in' | t }}{%- endif -%}">
+      <svg width="24" height="24">
+        <use href="#icon-account"></use>
+      </svg>
+    </a>
+  {%- endif -%}
 
- 
-      <!-- Account -->
-      {%- if shop.customer_accounts_enabled -%}
-        <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon" title="{%- if customer -%}{{ 'customer.account_fallback' | t }}{%- else -%}{{ 'customer.log_in' | t }}{%- endif -%}">
-          <svg width="24" height="24">
-            <use href="#icon-account"></use>
-          </svg>
-        </a>
-      {%- endif -%}
-
-      <!-- Cart - Opens Drawer with Perfect Empty State Handling -->
-      <button class="header__icon" id="cart-icon-bubble" onclick="openCartDrawer()" title="{{ 'templates.cart.cart' | t }}">
-        <svg width="24" height="24">
-          <use href="#icon-cart"></use>
-        </svg>
-        <span class="cart-count-bubble" style="display: {% if cart.item_count > 0 %}flex{% else %}none{% endif %}">
-          {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
-        </span>
-      </button>
-    </div>
+  <!-- Cart - Opens Drawer with Perfect Empty State Handling -->
+  <button class="header__icon" id="cart-icon-bubble" onclick="openCartDrawer()" title="{{ 'templates.cart.cart' | t }}">
+    <svg width="24" height="24">
+      <use href="#icon-cart"></use>
+    </svg>
+    <span class="cart-count-bubble" style="display: {% if cart.item_count > 0 %}flex{% else %}none{% endif %}">
+      {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
+    </span>
+  </button>
+</div>
   </header>
 </{% if enable_sticky_header %}sticky-header{% else %}div{% endif %}>
 
-<!-- Compare Products Popup -->
+<!-- Compare Products Popup - Add this after your header -->
 <div id="compare-popup" class="compare-popup hidden">
-  <div class="compare-overlay" onclick="toggleComparePopup()"></div>
+  <div class="compare-overlay" onclick="closeComparePopup()"></div>
   <div class="compare-modal">
-    <button class="compare-close" onclick="toggleComparePopup()">{% render 'icon', icon: 'close' %}</button>
+    <button class="compare-close" onclick="closeComparePopup()">
+      <svg width="20" height="20">
+        <use href="#icon-close"></use>
+      </svg>
+    </button>
     <h3>Compare Products</h3>
     <div id="compare-content">Loading...</div>
   </div>
@@ -2552,16 +2701,26 @@
   </div>
   
   <!-- Mobile Search -->
-  <div class="mobile-search">
-    <form action="{{ routes.search_url }}" method="get" style="display: flex; position: relative;">
-      <input type="search" class="mobile-search-input" placeholder="{{ 'general.search.search' | t }}" name="q" value="{{ search.terms | escape }}">
-      <button type="submit" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; padding: 8px;" aria-label="{{ 'general.search.search' | t }}">
-        <svg width="16" height="16">
-          <use href="#icon-search"></use>
-        </svg>
-      </button>
-    </form>
-  </div>
+ <div class="mobile-search">
+  <form action="{{ routes.search_url }}" method="get" role="search" style="display: flex; position: relative;">
+    <input 
+      type="search" 
+      class="mobile-search-input" 
+      placeholder="{{ 'general.search.search' | t }}" 
+      name="q" 
+      value="{{ search.terms | escape }}"
+      autocomplete="off"
+      required>
+    <button 
+      type="submit" 
+      style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; padding: 8px; cursor: pointer;" 
+      aria-label="{{ 'general.search.search' | t }}">
+      <svg width="16" height="16">
+        <use href="#icon-search"></use>
+      </svg>
+    </button>
+  </form>
+</div>
   
   <div class="mobile-menu-content">
     {%- if section.settings.menu != blank -%}
@@ -2639,8 +2798,9 @@
   {{ 'component-transparent-header.css' | asset_url | stylesheet_tag }}
 {%- endif -%}
 
-<!-- SVG Icons -->
+<!-- Replace your existing SVG icons section with this updated version -->
 <svg xmlns="http://www.w3.org/2000/svg" class="hidden">
+  <!-- Existing Cart Icon -->
   {%- if section.settings.cart_icon == 'bag' %}
     <symbol id="icon-cart" fill="none" viewbox="0 0 24 24">
       <path d="M16 10V6a4 4 0 0 0-8 0v4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
@@ -2653,23 +2813,51 @@
       <path d="M3.72831 16.8554C3.72831 17.6005 4.33233 18.2045 5.07741 18.2045C5.8225 18.2045 6.42651 17.6005 6.42651 16.8554C6.42651 16.1104 5.8225 15.5063 5.07741 15.5063C4.33233 15.5063 3.72831 16.1104 3.72831 16.8554Z" fill="currentColor"/>
     </symbol>
   {% endif -%}
-  <symbol id="icon-search" fill="none" viewBox="0 0 15 17">
-    <circle cx="7.11113" cy="7.11113" r="6.56113" stroke="currentColor" fill="none"/>
-    <path d="M11.078 12.3282L13.8878 16.0009" stroke="currentColor" stroke-linecap="round" fill="none"/>
+  
+  <!-- Updated Search Icon -->
+  <symbol id="icon-search" fill="none" viewBox="0 0 24 24">
+    <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+    <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
   </symbol>
+  
+  <!-- Modern Heart/Wishlist Icon -->
   <symbol id="icon-heart" fill="none" viewBox="0 0 24 24">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2"/>
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </symbol>
+  
+  <!-- Modern Compare Icon -->
+  <symbol id="icon-compare" fill="none" viewBox="0 0 24 24">
+    <path d="M3 3h6l2 7H3V3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M13 10h8l-2 7h-6l2-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M17 21V10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="7" cy="21" r="2" stroke="currentColor" stroke-width="2"/>
+    <circle cx="17" cy="21" r="2" stroke="currentColor" stroke-width="2"/>
+  </symbol>
+  
+  <!-- Alternative Modern Compare Icon (Boxes) -->
+  <symbol id="icon-compare-alt" fill="none" viewBox="0 0 24 24">
+    <rect x="3" y="3" width="8" height="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="13" y="13" width="8" height="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M8 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 8v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  
+  <!-- Account Icon -->
   <symbol id="icon-account" fill="none" viewBox="0 0 24 24">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
     <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
   </symbol>
+  
+  <!-- Hamburger Menu Icon -->
   <symbol id="icon-hamburger" fill="none" viewBox="0 0 24 24">
     <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </symbol>
-  <symbol id="icon-close" fill="none" viewBox="0 0 12 12">
-    <path d="M1 1L11 11" stroke="currentColor" stroke-linecap="round" fill="none"/>
-    <path d="M11 1L1 11" stroke="currentColor" stroke-linecap="round" fill="none"/>
+  
+  <!-- Close Icon -->
+  <symbol id="icon-close" fill="none" viewBox="0 0 24 24">
+    <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </symbol>
 </svg>
 
@@ -3733,40 +3921,154 @@ async function toggleComparePopup() {
   }
 }
 
+// Compare Products Functions - Replace existing compare functions
+async function toggleComparePopup() {
+  const popup = document.getElementById('compare-popup');
+  if (!popup) return;
+  
+  if (popup.classList.contains('hidden')) {
+    popup.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    await loadCompareProducts();
+  } else {
+    popup.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
+
 async function loadCompareProducts() {
   const container = document.getElementById('compare-content');
   if (!container) return;
-  container.innerHTML = 'Loading...';
+  
+  container.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="cart-spinner"></div><p>Loading products...</p></div>';
+  
   try {
+    // Get cart data
     const cartRes = await fetch('/cart.js');
     const cart = await cartRes.json();
-    if (!cart.items.length) {
-      container.innerHTML = '<p>Your cart is empty.</p>';
+    
+    if (!cart.items || cart.items.length === 0) {
+      container.innerHTML = '<div style="text-align: center; padding: 40px;"><p style="color: #666; font-size: 16px;">Your cart is empty.</p><p style="color: #999; font-size: 14px;">Add some products to see comparisons!</p></div>';
       return;
     }
-    const handle = cart.items[0].handle;
-    const prodRes = await fetch(`/products/${handle}.js`);
-    const product = await prodRes.json();
-    const range = product.metafields?.custom?.range;
-    if (!range) {
-      container.innerHTML = '<p>No related products found.</p>';
-      return;
+    
+    // Get first cart item's product details
+    const firstItem = cart.items[0];
+    let compareProducts = [];
+    
+    try {
+      // Try to get product details
+      const prodRes = await fetch(`/products/${firstItem.handle}.js`);
+      if (!prodRes.ok) throw new Error('Product not found');
+      
+      const product = await prodRes.json();
+      
+      // Check for range metafield (your custom compare logic)
+      const range = product.metafields?.custom?.range;
+      
+      if (range) {
+        // Parse comma-separated handles
+        const handles = range.split(',').map(h => h.trim()).filter(h => h);
+        
+        // Fetch all related products
+        const relatedPromises = handles.map(async (handle) => {
+          try {
+            const res = await fetch(`/products/${handle}.js`);
+            return res.ok ? await res.json() : null;
+          } catch (error) {
+            console.log(`Could not fetch product: ${handle}`);
+            return null;
+          }
+        });
+        
+        const relatedProducts = await Promise.all(relatedPromises);
+        compareProducts = relatedProducts.filter(p => p && p.available);
+      }
+      
+      // Fallback: Get products from same collection
+      if (compareProducts.length === 0 && product.collections && product.collections.length > 0) {
+        try {
+          const firstCollection = product.collections[0];
+          const collectionRes = await fetch(`/collections/${firstCollection.handle}/products.json?limit=12`);
+          
+          if (collectionRes.ok) {
+            const collectionData = await collectionRes.json();
+            compareProducts = collectionData.products
+              .filter(p => p.id !== product.id && p.available)
+              .slice(0, 8);
+          }
+        } catch (error) {
+          console.log('Could not fetch collection products');
+        }
+      }
+      
+    } catch (error) {
+      console.log('Error fetching product details:', error);
     }
-    const handles = range.split(',');
-    const related = await Promise.all(handles.map(async (h) => {
-      const res = await fetch(`/products/${h.trim()}.js`);
-      return res.ok ? res.json() : null;
-    }));
-    const items = related.filter(p => p);
-    if (!items.length) {
-      container.innerHTML = '<p>No related products found.</p>';
-      return;
+    
+    // Ultimate fallback: Get some random products
+    if (compareProducts.length === 0) {
+      try {
+        const response = await fetch('/collections/all/products.json?limit=8');
+        if (response.ok) {
+          const data = await response.json();
+          compareProducts = data.products.filter(p => p.available);
+        }
+      } catch (error) {
+        console.log('Error fetching fallback products:', error);
+      }
     }
-    container.innerHTML = items.map(p => `<a href="/products/${p.handle}" class="compare-item"><img src="${p.featured_image}" alt="${p.title}"><span>${p.title}</span></a>`).join('');
-  } catch (e) {
-    container.innerHTML = '<p>Error loading products.</p>';
+    
+    // Render products
+    if (compareProducts.length > 0) {
+      const productsHTML = compareProducts.map(product => {
+        const image = product.featured_image || product.images[0] || '';
+        const imageUrl = image ? (typeof image === 'string' ? image : image.src) : '';
+        const price = product.variants && product.variants[0] ? product.variants[0].price : 0;
+        
+        return `
+          <a href="/products/${product.handle}" class="compare-item" onclick="closeComparePopup()">
+            <img src="${imageUrl ? imageUrl + '?width=150' : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE1MCAxNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTc1IDM3LjVjMjAuNzEgMCAzNy41IDE2Ljc5IDM3LjUgMzcuNVM5NS43MSAxMTIuNSA3NSAxMTIuNSAzNy41IDk1LjcxIDM3LjUgNzUgNTQuMjkgMzcuNSA3NSAzNy41Wm0tMTMuMjYgMTMuMjZhMjYuMjUgMjYuMjUgMCAwIDAgMCAzNy4xIDI2LjI1IDI2LjI1IDAgMCAwIDM3LjEgMEw4Mi4zMSA3NSA2MS43NCA1NC40M1oiIGZpbGw9IiNlNWU1ZTUiLz48L3N2Zz4='}" 
+                 alt="${product.title}" 
+                 loading="lazy"
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE1MCAxNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTc1IDM3LjVjMjAuNzEgMCAzNy41IDE2Ljc5IDM3LjUgMzcuNVM5NS43MSAxMTIuNSA3NSAxMTIuNSAzNy41IDk1LjcxIDM3LjUgNzUgNTQuMjkgMzcuNSA3NSAzNy41Wm0tMTMuMjYgMTMuMjZhMjYuMjUgMjYuMjUgMCAwIDAgMCAzNy4xIDI2LjI1IDI2LjI1IDAgMCAwIDM3LjEgMEw4Mi4zMSA3NSA2MS43NCA1NC40M1oiIGZpbGw9IiNlNWU1ZTUiLz48L3N2Zz4='">
+            <span>${product.title}</span>
+            <div style="margin-top: 8px; font-weight: 600; color: rgb(var(--color-highlight));">
+              ${formatMoney(price * 100)}
+            </div>
+          </a>
+        `;
+      }).join('');
+      
+      container.innerHTML = productsHTML;
+    } else {
+      container.innerHTML = '<div style="text-align: center; padding: 40px;"><p style="color: #666; font-size: 16px;">No related products found.</p><p style="color: #999; font-size: 14px;">Try adding more products to your cart!</p></div>';
+    }
+    
+  } catch (error) {
+    console.error('Error loading compare products:', error);
+    container.innerHTML = '<div style="text-align: center; padding: 40px;"><p style="color: #e74c3c; font-size: 16px;">Error loading products.</p><p style="color: #999; font-size: 14px;">Please try again later.</p></div>';
   }
 }
+
+function closeComparePopup() {
+  const popup = document.getElementById('compare-popup');
+  if (popup) {
+    popup.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
+
+// Add to existing window event listeners
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (cartDrawerOpen) {
+      closeCartDrawer();
+    }
+    closeSearchModal();
+    closeComparePopup(); // Add this line
+  }
+});
 </script>
 
 <!-- Sticky Header JavaScript -->
