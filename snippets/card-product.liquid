@@ -308,16 +308,105 @@
 
 
 
-
-        // Wishlist Badge JavaScript - Add this to your JavaScript section
+// Improved Wishlist JavaScript - Better Product Fetching
 
 // Wishlist functionality
 let wishlistItems = JSON.parse(localStorage.getItem('wishlist') || '[]');
 
+// Store product data cache to avoid repeated API calls
+let productCache = new Map();
+
 // Initialize wishlist badges on page load
 document.addEventListener('DOMContentLoaded', function() {
   initializeWishlistBadges();
+  // Preload product data if needed
+  preloadProductData();
 });
+
+// Preload some product data for better performance
+async function preloadProductData() {
+  try {
+    const response = await fetch('/products.json?limit=250');
+    if (response.ok) {
+      const data = await response.json();
+      data.products.forEach(product => {
+        productCache.set(product.id.toString(), product);
+      });
+    }
+  } catch (error) {
+    console.log('Could not preload product data:', error);
+  }
+}
+
+// Get product data by ID - with multiple fallback methods
+async function getProductData(productId) {
+  // Check cache first
+  if (productCache.has(productId)) {
+    return productCache.get(productId);
+  }
+  
+  try {
+    // Method 1: Search in preloaded products
+    if (productCache.size > 0) {
+      const product = Array.from(productCache.values()).find(p => p.id.toString() === productId);
+      if (product) return product;
+    }
+    
+    // Method 2: Fetch all products and search (for smaller stores)
+    const response = await fetch('/products.json?limit=250');
+    if (response.ok) {
+      const data = await response.json();
+      const product = data.products.find(p => p.id.toString() === productId);
+      
+      if (product) {
+        productCache.set(productId, product);
+        return product;
+      }
+    }
+    
+    // Method 3: Try fetching from collections
+    const collectionsResponse = await fetch('/collections.json');
+    if (collectionsResponse.ok) {
+      const collectionsData = await collectionsResponse.json();
+      
+      for (const collection of collectionsData.collections) {
+        try {
+          const collectionResponse = await fetch(`/collections/${collection.handle}/products.json?limit=50`);
+          if (collectionResponse.ok) {
+            const collectionProducts = await collectionResponse.json();
+            const product = collectionProducts.products.find(p => p.id.toString() === productId);
+            
+            if (product) {
+              productCache.set(productId, product);
+              return product;
+            }
+          }
+        } catch (error) {
+          continue; // Try next collection
+        }
+      }
+    }
+    
+    // Method 4: Try to construct product URL and fetch (last resort)
+    // This method might not work for all themes but worth trying
+    try {
+      const productResponse = await fetch(`/products/${productId}.js`);
+      if (productResponse.ok) {
+        const product = await productResponse.json();
+        productCache.set(productId, product);
+        return product;
+      }
+    } catch (error) {
+      console.log('Direct product fetch failed:', error);
+    }
+    
+    return null;
+    
+  } catch (error) {
+    console.error('Error fetching product data:', error);
+    return null;
+  }
+}
 
 // Initialize all wishlist badges
 function initializeWishlistBadges() {
@@ -327,7 +416,7 @@ function initializeWishlistBadges() {
     if (wishlistItems.includes(productId)) {
       badge.classList.add('in-wishlist');
       badge.setAttribute('title', 'Remove from Wishlist');
-      badge.setAttribute('aria-label', badge.getAttribute('aria-label').replace('Add', 'Remove'));
+      badge.setAttribute('aria-label', badge.getAttribute('aria-label')?.replace('Add', 'Remove') || 'Remove from wishlist');
     }
   });
   
@@ -335,7 +424,7 @@ function initializeWishlistBadges() {
   updateWishlistCount();
 }
 
-// Toggle wishlist function
+// Enhanced Toggle wishlist function with better error handling
 async function toggleWishlist(productId, productHandle, button) {
   // Prevent multiple clicks
   if (button.classList.contains('loading')) return;
@@ -360,6 +449,19 @@ async function toggleWishlist(productId, productHandle, button) {
       button.classList.add('in-wishlist', 'added');
       button.setAttribute('title', 'Remove from Wishlist');
       
+      // Cache product data for faster wishlist page loading
+      if (productHandle) {
+        try {
+          const productResponse = await fetch(`/products/${productHandle}.js`);
+          if (productResponse.ok) {
+            const productData = await productResponse.json();
+            productCache.set(productId.toString(), productData);
+          }
+        } catch (error) {
+          console.log('Could not cache product data');
+        }
+      }
+      
       // Show notification
       showWishlistNotification('Added to wishlist', 'added');
       
@@ -376,7 +478,7 @@ async function toggleWishlist(productId, productHandle, button) {
     updateWishlistCount();
     
     // Optional: Send to server if you want to sync with customer account
-    if (window.customerLoggedIn) {
+    if (window.customer || window.customerLoggedIn) {
       await syncWishlistWithServer(productId, !isInWishlist);
     }
     
@@ -388,7 +490,7 @@ async function toggleWishlist(productId, productHandle, button) {
   }
 }
 
-// Show wishlist notification
+// Enhanced wishlist notification system
 function showWishlistNotification(message, type = 'success') {
   // Remove existing notifications
   const existingNotification = document.querySelector('.wishlist-notification');
@@ -399,6 +501,10 @@ function showWishlistNotification(message, type = 'success') {
   // Create notification
   const notification = document.createElement('div');
   notification.className = `wishlist-notification wishlist-notification--${type}`;
+  
+  // Use theme colors
+  const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--color-button') || '184, 101, 60';
+  
   notification.innerHTML = `
     <div class="wishlist-notification__content">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -417,12 +523,12 @@ function showWishlistNotification(message, type = 'success') {
     </div>
   `;
   
-  // Add notification styles
+  // Add notification styles using theme colors
   notification.style.cssText = `
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: ${type === 'added' ? 'rgb(184, 101, 60)' : type === 'removed' ? '#666' : '#e74c3c'};
+    background: ${type === 'added' ? `rgb(${themeColor})` : type === 'removed' ? '#666' : '#e74c3c'};
     color: white;
     padding: 12px 16px;
     border-radius: 8px;
@@ -432,6 +538,7 @@ function showWishlistNotification(message, type = 'success') {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 14px;
     font-weight: 500;
+    backdrop-filter: blur(10px);
   `;
   
   notification.querySelector('.wishlist-notification__content').style.cssText = `
@@ -461,9 +568,32 @@ function showWishlistNotification(message, type = 'success') {
 // Update wishlist count in header
 function updateWishlistCount() {
   const wishlistCountElements = document.querySelectorAll('.wishlist-count');
+  let wishlistItems = JSON.parse(localStorage.getItem('wishlist') || '[]');
   wishlistCountElements.forEach(element => {
     element.textContent = wishlistItems.length;
     element.style.display = wishlistItems.length > 0 ? 'flex' : 'none';
+  });
+}
+
+// Call this on page load and after wishlist changes
+document.addEventListener('DOMContentLoaded', updateWishlistCount);
+
+// If you already have a function that updates wishlist, call updateWishlistCount() after any add/remove
+  
+  // Also update any wishlist links with count
+  const wishlistLinks = document.querySelectorAll('a[href*="wishlist"]');
+  wishlistLinks.forEach(link => {
+    let countBadge = link.querySelector('.wishlist-count');
+    if (!countBadge && wishlistItems.length > 0) {
+      countBadge = document.createElement('span');
+      countBadge.className = 'wishlist-count cart-count-bubble';
+      countBadge.style.background = `rgb(${getComputedStyle(document.documentElement).getPropertyValue('--color-button') || '184, 101, 60'})`;
+      link.appendChild(countBadge);
+    }
+    if (countBadge) {
+      countBadge.textContent = wishlistItems.length;
+      countBadge.style.display = wishlistItems.length > 0 ? 'flex' : 'none';
+    }
   });
 }
 
@@ -471,19 +601,20 @@ function updateWishlistCount() {
 async function syncWishlistWithServer(productId, isAdding) {
   try {
     // This is optional - implement if you want server-side wishlist storage
-    const response = await fetch('/cart/add.js', {
+    const response = await fetch('/cart/update.js', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        action: isAdding ? 'add_to_wishlist' : 'remove_from_wishlist',
-        product_id: productId
+        attributes: {
+          wishlist: wishlistItems.join(',')
+        }
       })
     });
     
     if (!response.ok) {
-      console.log('Could not sync with server');
+      console.log('Could not sync wishlist with server');
     }
   } catch (error) {
     console.log('Error syncing wishlist with server:', error);
@@ -495,10 +626,25 @@ function getWishlistItems() {
   return wishlistItems;
 }
 
+// Get wishlist products with full data
+async function getWishlistProducts() {
+  const products = [];
+  
+  for (const productId of wishlistItems) {
+    const product = await getProductData(productId);
+    if (product) {
+      products.push(product);
+    }
+  }
+  
+  return products;
+}
+
 // Clear wishlist
 function clearWishlist() {
   wishlistItems = [];
   localStorage.removeItem('wishlist');
+  productCache.clear();
   
   // Update all badges
   const badges = document.querySelectorAll('.card__badge--wishlist');
@@ -510,145 +656,35 @@ function clearWishlist() {
   updateWishlistCount();
 }
 
-// Export functions for use in other files
-window.toggleWishlist = toggleWishlist;
-window.getWishlistItems = getWishlistItems;
-window.clearWishlist = clearWishlist;
-
-// Wishlist Position Controller - Add this to handle add to cart button detection
-
-document.addEventListener('DOMContentLoaded', function() {
-  initializeWishlistPositioning();
-  
-  // Watch for add to cart buttons appearing/disappearing
-  observeAddToCartButtons();
-});
-
-function initializeWishlistPositioning() {
-  const productCards = document.querySelectorAll('.card-wrapper, .product-card, .card');
-  
-  productCards.forEach(card => {
-    checkAndUpdateWishlistPosition(card);
-  });
+// Import/Export wishlist (useful for account integration)
+function exportWishlist() {
+  return {
+    items: wishlistItems,
+    timestamp: new Date().toISOString()
+  };
 }
 
-function checkAndUpdateWishlistPosition(card) {
-  const addToCartSelectors = [
-    '.quick-add-button:not(.hidden)',
-    '.product-form:not(.hidden)', 
-    '.btn-add-to-cart:not(.hidden)',
-    '.card__content .button:not(.hidden)',
-    '.product-form__buttons:not(.hidden)',
-    '.quick-add:not(.hidden)',
-    '[data-action="add-to-cart"]:not(.hidden)'
-  ];
-  
-  let hasVisibleAddToCart = false;
-  
-  // Check if any add to cart button is visible
-  addToCartSelectors.forEach(selector => {
-    if (card.querySelector(selector)) {
-      hasVisibleAddToCart = true;
-    }
-  });
-  
-  // Add or remove class based on add to cart visibility
-  if (hasVisibleAddToCart) {
-    card.classList.add('has-add-to-cart');
-  } else {
-    card.classList.remove('has-add-to-cart');
+function importWishlist(wishlistData) {
+  if (wishlistData && wishlistData.items) {
+    wishlistItems = wishlistData.items;
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    initializeWishlistBadges();
+    updateWishlistCount();
   }
 }
 
-function observeAddToCartButtons() {
-  // Create a mutation observer to watch for changes
-  const observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-      if (mutation.type === 'attributes' || mutation.type === 'childList') {
-        // Find the closest product card
-        let card = mutation.target.closest('.card-wrapper, .product-card, .card');
-        if (card) {
-          checkAndUpdateWishlistPosition(card);
-        }
-      }
-    });
-  });
-  
-  // Observe all product cards
-  const productCards = document.querySelectorAll('.card-wrapper, .product-card, .card');
-  productCards.forEach(card => {
-    observer.observe(card, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-      attributeFilter: ['class', 'style', 'hidden']
-    });
-  });
-  
-  // Also watch for hover events that might show/hide add to cart
-  productCards.forEach(card => {
-    card.addEventListener('mouseenter', () => {
-      setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
-    });
-    
-    card.addEventListener('mouseleave', () => {
-      setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
-    });
-  });
-}
+// ...inside toggleWishlist function...
+localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+updateWishlistCount();
 
-// Alternative method: Manual class toggle for specific themes
-function handleQuickAddVisibility() {
-  // Listen for quick-add button visibility changes
-  document.addEventListener('click', function(e) {
-    // If clicking on quick-add trigger
-    if (e.target.matches('.quick-add-trigger, .quick-shop, .quick-view')) {
-      const card = e.target.closest('.card-wrapper, .product-card, .card');
-      if (card) {
-        setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
-      }
-    }
-  });
-  
-  // Listen for form submissions that might change button states
-  document.addEventListener('submit', function(e) {
-    if (e.target.matches('.product-form, form[action*="/cart/add"]')) {
-      const card = e.target.closest('.card-wrapper, .product-card, .card');
-      if (card) {
-        setTimeout(() => checkAndUpdateWishlistPosition(card), 100);
-      }
-    }
-  });
-}
-
-// Initialize the manual handler
-handleQuickAddVisibility();
-
-// Export for manual control if needed
-window.updateWishlistPosition = checkAndUpdateWishlistPosition;
-window.initializeWishlistPositioning = initializeWishlistPositioning;
-
-
-          <noscript>
-            <div class="card deferred-media__poster">
-              <span class="deferred-media__poster-button motion-reduce">
-                {%- render 'icon', icon: 'play-solid' -%}
-              </span>
-              <div class="card-media-video media media--{{ media_size }}"
-                style="--image-ratio-percent: {% if image != blank %}{{ 1 | divided_by: image.aspect_ratio | times: 100 }}%{% else %}100%{% endif %};"
-              >
-                {%- if image.preview_image != blank -%}
-                {{ image.preview_image | image_url: width: 1100 | image_tag: loading: image_loading,
-                  class: 'motion-reduce', 
-                  sizes: sizes, 
-                  widths: widths,
-                  alt: alt, 
-                  is: 'lazy-image'  }}
-                {%- else -%}
-                  {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg placeholder collage-card__image' }}
-                {%- endif -%}
-              </div>
-            </div>
+// Export functions for use in other files
+window.toggleWishlist = toggleWishlist;
+window.getWishlistItems = getWishlistItems;
+window.getWishlistProducts = getWishlistProducts;
+window.clearWishlist = clearWishlist;
+window.exportWishlist = exportWishlist;
+window.importWishlist = importWishlist;
+window.updateWishlistCount = updateWishlistCount;
           </noscript>
           
           {%- liquid 
