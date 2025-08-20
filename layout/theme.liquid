@@ -227,6 +227,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {%- if settings.color_swatches_enabled -%}
       <script src="{{ 'color-swatches.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
+    <script src="{{ 'wishlist.js' | asset_url }}" defer></script>
     {%- if linklists.gift-wrapping.links != blank and linklists.gift-wrapping.links.first.type == 'product_link' -%}
       <script src="{{ 'gift-wrapping.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
