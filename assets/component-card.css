@@ -635,45 +635,176 @@
     cursor: grabbing;
   }
 }
-/* Add to your CSS file */
+/* Wishlist Badge System - Add this to your CSS section */
+
+/* Card Wrapper - Make sure product cards are positioned relative */
+.card-wrapper,
+.product-card,
+.card,
+.product-item {
+  position: relative;
+}
+
+/* Main Wishlist Badge Styling */
 .card__badge--wishlist {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  z-index: 3;
-  background: #fff;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(184, 101, 60, 0.1);
   border-radius: 50%;
-  padding: 0.4em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  color: #666;
 }
+
+/* Hover State */
 .card__badge--wishlist:hover {
-  background: #ffeaea;
+  background: rgba(184, 101, 60, 0.1);
+  border-color: rgb(184, 101, 60);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(184, 101, 60, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-.card-wrapper {
-  position: relative;
+
+/* Active/Added to Wishlist State */
+.card__badge--wishlist.active,
+.card__badge--wishlist.in-wishlist {
+  background: rgb(184, 101, 60);
+  border-color: rgb(184, 101, 60);
+  color: #fff;
+  transform: scale(1.1);
 }
-/* Add to your CSS file */
-.card__badge--wishlist {
-  position: absolute;
+
+.card__badge--wishlist.active:hover,
+.card__badge--wishlist.in-wishlist:hover {
+  background: rgb(168, 90, 59);
+  transform: translateY(-2px) scale(1.1);
+}
+
+/* Wishlist Icon Styling */
+.card__badge--wishlist svg {
+  width: 18px;
+  height: 18px;
+  transition: all 0.3s ease;
+  stroke-width: 1.5;
+}
+
+.card__badge--wishlist:hover svg {
+  transform: scale(1.1);
+}
+
+.card__badge--wishlist.active svg,
+.card__badge--wishlist.in-wishlist svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* Loading State */
+.card__badge--wishlist.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.card__badge--wishlist.loading svg {
+  animation: wishlistSpin 1s linear infinite;
+}
+
+@keyframes wishlistSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Success Animation */
+.card__badge--wishlist.added {
+  animation: wishlistPulse 0.6s ease-out;
+}
+
+@keyframes wishlistPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1.1); }
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .card__badge--wishlist {
+    width: 38px;
+    height: 38px;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  
+  .card__badge--wishlist svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .card__badge--wishlist {
+    width: 34px;
+    height: 34px;
+    top: 0.4rem;
+    right: 0.4rem;
+  }
+  
+  .card__badge--wishlist svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Special styling for different card layouts */
+.card--standard .card__badge--wishlist,
+.card--card .card__badge--wishlist {
+  top: 1rem;
+  right: 1rem;
+}
+
+.card--media .card__badge--wishlist {
   top: 0.75rem;
   right: 0.75rem;
-  z-index: 3;
-  background: #fff;
-  border-radius: 50%;
-  padding: 0.4em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
 }
-.card__badge--wishlist:hover {
-  background: #ffeaea;
+
+/* For product grids with different layouts */
+.product-grid .card__badge--wishlist {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
 }
-.card-wrapper {
-  position: relative;
+
+.product-grid .card-wrapper:hover .card__badge--wishlist,
+.product-grid .product-card:hover .card__badge--wishlist {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Always show on mobile */
+@media screen and (max-width: 768px) {
+  .product-grid .card__badge--wishlist {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .card__badge--wishlist {
+    background: rgba(40, 40, 40, 0.95);
+    border-color: rgba(184, 101, 60, 0.2);
+    color: #ccc;
+  }
+  
+  .card__badge--wishlist:hover {
+    background: rgba(184, 101, 60, 0.2);
+  }
 }

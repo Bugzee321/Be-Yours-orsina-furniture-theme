@@ -210,15 +210,62 @@
 {{ 'component-rating.css' | asset_url | stylesheet_tag }}
 
 <div class="card-wrapper">
-  <!-- Wishlist Badge (top right) -->
-  <a href="/pages/wishlist?add={{ card_product.handle }}" 
-     class="card__badge card__badge--wishlist" 
-     title="Add to Wishlist" 
-     aria-label="Add to Wishlist">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
-      <path d="M10 17s-6-4.35-6-8.5A4.5 4.5 0 0 1 10 4a4.5 4.5 0 0 1 6 4.5C16 12.65 10 17 10 17z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  <!-- Wishlist Badge HTML - Add this to your product card template -->
+<!-- This should go in your product card template file (usually card-product.liquid) -->
+
+<div class="card-wrapper">
+  <!-- Your existing product card content -->
+  
+  <!-- Wishlist Badge - Add this inside your product card -->
+  <button 
+    class="card__badge--wishlist" 
+    data-product-id="{{ product.id }}"
+    data-product-handle="{{ product.handle }}"
+    onclick="toggleWishlist({{ product.id }}, '{{ product.handle }}', this)"
+    title="Add to Wishlist"
+    aria-label="Add {{ product.title | escape }} to wishlist">
+    
+    <!-- Heart Icon SVG -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+            stroke="currentColor" 
+            stroke-width="1.5" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"/>
     </svg>
-  </a>
+  </button>
+  
+  <!-- Rest of your product card content -->
+</div>
+
+<!-- Alternative: If you want to use it in collection pages -->
+<!-- Add this to your collection-product-card.liquid or wherever you display products -->
+
+{%- for product in collection.products -%}
+  <div class="card-wrapper product-card">
+    <!-- Wishlist Badge -->
+    <button 
+      class="card__badge--wishlist" 
+      data-product-id="{{ product.id }}"
+      data-product-handle="{{ product.handle }}"
+      onclick="toggleWishlist({{ product.id }}, '{{ product.handle }}', this)"
+      title="Add to Wishlist">
+      
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+              stroke="currentColor" 
+              stroke-width="1.5" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"/>
+      </svg>
+    </button>
+    
+    <!-- Your existing product content (image, title, price, etc.) -->
+    <div class="card__inner">
+      <!-- Product image, title, price etc. -->
+    </div>
+  </div>
+{%- endfor -%}
   <use-animate data-animate="zoom-fade-small" class="card card--product{% if card_product.featured_media == nil %} card--text{% endif %}" tabindex="-1">
     {%- if card_product.featured_media -%}
       {%- liquid
@@ -258,6 +305,217 @@
 
       {% if card_product_media.media_type == 'video' or card_product_media.media_type == 'external_video' %}
         <div class="card__media media-wrapper" tabindex="-1">
+
+
+
+
+        // Wishlist Badge JavaScript - Add this to your JavaScript section
+
+// Wishlist functionality
+let wishlistItems = JSON.parse(localStorage.getItem('wishlist') || '[]');
+
+// Initialize wishlist badges on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeWishlistBadges();
+});
+
+// Initialize all wishlist badges
+function initializeWishlistBadges() {
+  const badges = document.querySelectorAll('.card__badge--wishlist');
+  badges.forEach(badge => {
+    const productId = badge.getAttribute('data-product-id');
+    if (wishlistItems.includes(productId)) {
+      badge.classList.add('in-wishlist');
+      badge.setAttribute('title', 'Remove from Wishlist');
+      badge.setAttribute('aria-label', badge.getAttribute('aria-label').replace('Add', 'Remove'));
+    }
+  });
+  
+  // Update wishlist count in header if you have a wishlist counter
+  updateWishlistCount();
+}
+
+// Toggle wishlist function
+async function toggleWishlist(productId, productHandle, button) {
+  // Prevent multiple clicks
+  if (button.classList.contains('loading')) return;
+  
+  button.classList.add('loading');
+  
+  try {
+    const isInWishlist = wishlistItems.includes(productId.toString());
+    
+    if (isInWishlist) {
+      // Remove from wishlist
+      wishlistItems = wishlistItems.filter(id => id !== productId.toString());
+      button.classList.remove('in-wishlist', 'active');
+      button.setAttribute('title', 'Add to Wishlist');
+      
+      // Show notification
+      showWishlistNotification('Removed from wishlist', 'removed');
+      
+    } else {
+      // Add to wishlist
+      wishlistItems.push(productId.toString());
+      button.classList.add('in-wishlist', 'added');
+      button.setAttribute('title', 'Remove from Wishlist');
+      
+      // Show notification
+      showWishlistNotification('Added to wishlist', 'added');
+      
+      // Remove added animation class after animation
+      setTimeout(() => {
+        button.classList.remove('added');
+      }, 600);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
+    
+    // Update wishlist count
+    updateWishlistCount();
+    
+    // Optional: Send to server if you want to sync with customer account
+    if (window.customerLoggedIn) {
+      await syncWishlistWithServer(productId, !isInWishlist);
+    }
+    
+  } catch (error) {
+    console.error('Error toggling wishlist:', error);
+    showWishlistNotification('Something went wrong', 'error');
+  } finally {
+    button.classList.remove('loading');
+  }
+}
+
+// Show wishlist notification
+function showWishlistNotification(message, type = 'success') {
+  // Remove existing notifications
+  const existingNotification = document.querySelector('.wishlist-notification');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+  
+  // Create notification
+  const notification = document.createElement('div');
+  notification.className = `wishlist-notification wishlist-notification--${type}`;
+  notification.innerHTML = `
+    <div class="wishlist-notification__content">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        ${type === 'added' ? `
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+                fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+        ` : type === 'removed' ? `
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" 
+                stroke="currentColor" stroke-width="1.5"/>
+        ` : `
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2"/>
+        `}
+      </svg>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  // Add notification styles
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: ${type === 'added' ? 'rgb(184, 101, 60)' : type === 'removed' ? '#666' : '#e74c3c'};
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    transform: translateY(100px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 14px;
+    font-weight: 500;
+  `;
+  
+  notification.querySelector('.wishlist-notification__content').style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.style.transform = 'translateY(0)';
+  }, 10);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.style.transform = 'translateY(100px)';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 300);
+  }, 3000);
+}
+
+// Update wishlist count in header
+function updateWishlistCount() {
+  const wishlistCountElements = document.querySelectorAll('.wishlist-count');
+  wishlistCountElements.forEach(element => {
+    element.textContent = wishlistItems.length;
+    element.style.display = wishlistItems.length > 0 ? 'flex' : 'none';
+  });
+}
+
+// Optional: Sync with server if customer is logged in
+async function syncWishlistWithServer(productId, isAdding) {
+  try {
+    // This is optional - implement if you want server-side wishlist storage
+    const response = await fetch('/cart/add.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: isAdding ? 'add_to_wishlist' : 'remove_from_wishlist',
+        product_id: productId
+      })
+    });
+    
+    if (!response.ok) {
+      console.log('Could not sync with server');
+    }
+  } catch (error) {
+    console.log('Error syncing wishlist with server:', error);
+  }
+}
+
+// Get wishlist items (for wishlist page)
+function getWishlistItems() {
+  return wishlistItems;
+}
+
+// Clear wishlist
+function clearWishlist() {
+  wishlistItems = [];
+  localStorage.removeItem('wishlist');
+  
+  // Update all badges
+  const badges = document.querySelectorAll('.card__badge--wishlist');
+  badges.forEach(badge => {
+    badge.classList.remove('in-wishlist', 'active');
+    badge.setAttribute('title', 'Add to Wishlist');
+  });
+  
+  updateWishlistCount();
+}
+
+// Export functions for use in other files
+window.toggleWishlist = toggleWishlist;
+window.getWishlistItems = getWishlistItems;
+window.clearWishlist = clearWishlist;
+
+
           <noscript>
             <div class="card deferred-media__poster">
               <span class="deferred-media__poster-button motion-reduce">
