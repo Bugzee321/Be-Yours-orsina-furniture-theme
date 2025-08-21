@@ -2573,8 +2573,8 @@
 <!-- Header Right Icons -->
 <div class="header__right">
   <!-- Wishlist Icon with Counter -->
-  <a href="/pages/wishlist" class="header__icon" title="Wishlist" style="position:relative;">
-    <svg width="24" height="24">
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist" >
+    <svg width="24" height="24" aria-hidden="true" focusable="false">
       <use href="#icon-heart"></use>
     </svg>
     <span class="wishlist-count" aria-hidden="true"></span>
@@ -2582,49 +2582,69 @@
 </div>
 
 <style>
-  /* Flexible badge: supports 9+, 99+, 100+ */
+  /* Layout: push this container to the far right (desktop & mobile) */
+  .header__right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header__icon {
+    position: relative;          /* so the badge positions correctly */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+  }
+
+  /* Make sure it's right-aligned on small screens, too */
+  @media (max-width: 768px) {
+    .header__right {
+      margin-left: auto;
+      margin-right: 0;
+      display: flex !important;  /* in case theme hides it on mobile */
+      align-items: center;
+      gap: 10px;
+    }
+  }
+
+  /* Always-circle badge */
   .wishlist-count {
     position: absolute;
     top: -8px;
     right: -8px;
     background: #e74c3c;
     color: #fff;
-    border-radius: 999px;          /* pill shape */
-    min-width: 1px;               /* 1 digit = circle */
-    height: 1px;
-    padding: 0 5px;                /* space for 2+ chars like 9+ */
+    border-radius: 50%;
+    width: 20px;                 /* fixed circle */
+    height: 20px;
     font-size: 11px;
-    font-weight: 600;
-    display: none;                 /* JS toggles to flex */
+    font-weight: 700;
+    display: none;               /* JS toggles to flex */
     align-items: center;
     justify-content: center;
     line-height: 1;
     box-sizing: border-box;
-    white-space: nowrap;           /* avoid wrapping '99+' */
+    white-space: nowrap;         /* keep "9+" on one line */
     text-align: center;
   }
 
-  /* small "bump" animation on update (optional) */
-  .wishlist-count.bump {
-    animation: wishlist-bump 0.25s ease;
-  }
+  /* optional bump animation */
+  .wishlist-count.bump { animation: wishlist-bump 0.25s ease; }
   @keyframes wishlist-bump {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); }
   }
 </style>
-
 
 <script>
   // ---- Wishlist header counter (9+ format) ----
   function readWishlist() {
     try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
-    catch (e) { return []; }
+    catch { return []; }
   }
 
   function formatWishlistCount(n) {
-    // 9+ cap; change to 99+ if you prefer
+    // cap at 9+ to keep the circle neat
     return n > 9 ? '9+' : String(n);
   }
 
@@ -2637,24 +2657,24 @@
       el.style.display = count > 0 ? 'flex' : 'none';
       el.setAttribute('title', label);
 
-      // parent link/button ke liye accessible label
       const parent = el.closest('a,button');
       if (parent) parent.setAttribute('aria-label', label);
+
+      // optional bump effect
+      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
     });
   }
 
-  // Load pe update + cross-tab sync
+  // Initialize + cross-tab sync
   document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
   window.addEventListener('storage', (e) => {
     if (e.key === 'wishlist') updateHeaderWishlistCount();
   });
 
-  // OPTIONAL: agar aap ke toggle ke baad ye call hota ho to perfect
+  // expose for your toggle script
   window.updateWishlistCount = updateHeaderWishlistCount;
 </script>
 
-  </a>
-</div>
 
 
   <!-- Compare with modern icon 
