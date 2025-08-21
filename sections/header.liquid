@@ -2646,30 +2646,14 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     </svg>
   </button>
 
-  <!-- Product Card Wishlist Button -->
-<!-- Add this to your product card template (card-product.liquid or similar) -->
+  <!-- Wishlist -->
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist">
+    <svg width="24" height="24" aria-hidden="true">
+      <use href="#icon-heart"></use>
+    </svg>
+    <span class="badge wishlist-count" hidden></span>
+  </a>
 
-<button class="card__badge--wishlist" 
-        data-product-id="{{ product.id }}" 
-        data-product-handle="{{ product.handle }}"
-        aria-pressed="false"
-        title="Add to Wishlist">
-  <svg width="20" height="20" aria-hidden="true">
-    <use href="#icon-heart"></use>
-  </svg>
-  <span class="sr-only">Add to Wishlist</span>
-</button>
-
-<!-- Alternative with different selector if needed -->
-<button data-wishlist-toggle="{{ product.id }}" 
-        data-handle="{{ product.handle }}"
-        class="wishlist-btn"
-        aria-pressed="false"
-        title="Add to Wishlist">
-  <svg width="20" height="20" aria-hidden="true">
-    <use href="#icon-heart"></use>
-  </svg>
-</button>
   <!-- Account -->
   {%- if shop.customer_accounts_enabled -%}
     <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
