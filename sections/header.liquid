@@ -2602,26 +2602,27 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     height: var(--icon-size);
     pointer-events: none;
   }
+/* COUNTER BADGE — always a perfect circle */
+.header__icon .badge{
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: var(--badge-size);
+  height: var(--badge-size);
+  /* was: min-width + padding -> pills; ab fixed square + 50% = circle */
+  border-radius: 50%;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #fff;
+  overflow: hidden; /* safety for 2 chars like '9+' */
+}
 
-  /* counters (wishlist/cart) */
-  .header__icon .badge{
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    min-width: var(--badge-size);
-    height: var(--badge-size);
-    padding: 0 4px;
-    border-radius: 999px;
-    background: #e74c3c;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 0 2px #fff; /* better contrast on light headers */
-  }
 
   /* Mobile tweaks */
   @media (max-width: 480px){
@@ -2665,21 +2666,48 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     </a>
   {%- endif -%}
 
-  <!-- Cart -->
-  <button class="header__icon"
-          id="cart-icon-bubble"
-          onclick="openCartDrawer()"
-          title="{{ 'templates.cart.cart' | t }}"
-          aria-label="{{ 'templates.cart.cart' | t }}">
-    <svg width="24" height="24" aria-hidden="true">
-      <use href="#icon-cart"></use>
-    </svg>
-    <span class="badge cart-count-bubble"
-          {% if cart.item_count == 0 %}hidden{% endif %}>
-      {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
-    </span>
-  </button>
+ <!-- Cart -->
+<button class="header__icon"
+        id="cart-icon-bubble"
+        onclick="openCartDrawer()"
+        title="{{ 'templates.cart.cart' | t }}"
+        aria-label="{{ 'templates.cart.cart' | t }}">
+  <svg width="24" height="24" aria-hidden="true">
+    <use href="#icon-cart"></use>
+  </svg>
+  <span class="badge cart-count-bubble"
+        data-count="{{ cart.item_count }}"
+        {% if cart.item_count == 0 %}hidden{% endif %}>
+    {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
+  </span>
+</button>
+
 </div>
+<script>
+  function clampCount(n){ return n > 9 ? '9+' : String(n); }
+
+  function normalizeCartBubble(){
+    const el = document.querySelector('.cart-count-bubble');
+    if(!el) return;
+    const raw = parseInt(el.getAttribute('data-count') || el.textContent || '0', 10) || 0;
+    el.textContent = raw > 0 ? clampCount(raw) : '';
+    el.toggleAttribute('hidden', raw === 0);
+
+    const parent = el.closest('button');
+    if(parent){
+      parent.setAttribute('aria-label', `Cart (${raw})`);
+      parent.setAttribute('title', `Cart (${raw})`);
+    }
+  }
+
+  // wishlist already handled; just call cart normalizer too
+  document.addEventListener('DOMContentLoaded', () => {
+    updateHeaderWishlistCount && updateHeaderWishlistCount();
+    normalizeCartBubble();
+  });
+
+  // optional: if you ever update cart count via JS, call normalizeCartBubble() again afterwards
+</script>
 
 <script>
 /* ---- Wishlist counter (safe + accessible) ---- */
