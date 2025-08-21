@@ -635,64 +635,196 @@
     cursor: grabbing;
   }
 }
-/* ===========
-   COUNTER BADGE — global vars
-   =========== */
+/* ============================
+   WISHLIST HEART — CLEANED CSS
+   ============================ */
+
 :root{
-  --badge-size: 18px;     /* desktop */
-  --badge-size-md: 16px;  /* <=768px */
-  --badge-size-sm: 14px;  /* <=480px */
+  --wl-size: 40px;          /* desktop button size */
+  --wl-size-md: 36px;       /* <=768px */
+  --wl-size-sm: 32px;       /* <=480px */
+  --wl-offset: 0.75rem;     /* distance from top/right */
+  --wl-z: 15;               /* stacking for heart */
+  /* color fallbacks if theme vars missing */
+  --wl-fg-rgb: 40,40,40;     /* foreground fallback */
+  --wl-border-rgb: 210,213,217;
+  --wl-accent-rgb: 184,101,60; /* matches var(--color-button, ...) */
 }
 
-/* Make sure parents can anchor absolutely-positioned badges */
-.header__icon,
-.card__badge--wishlist { position: relative; }
+/* Ensure image wrappers are positioned for absolute children */
+.card__media,
+.product-image,
+.card-image,
+.media,
+.product-card__image,
+.image-wrapper {
+  position: relative;
+  overflow: hidden; /* keep badge within image bounds */
+}
 
-/* Reworked circle counter badge (works on header icons + wishlist heart) */
-.header__icon .badge,
-.card__badge--wishlist .badge{
+/* Core badge */
+.card__badge--wishlist{
   position: absolute;
-  top: -6px;
-  right: -6px;
-
-  width: var(--badge-size);
-  height: var(--badge-size);
-  border-radius: 50%;
-  background: #e74c3c; /* red */
-  color: #fff;
-
+  top: var(--wl-offset);
+  right: var(--wl-offset);
+  z-index: var(--wl-z);
+  width: var(--wl-size);
+  height: var(--wl-size);
+  border-radius: 50%;                 /* perfect circle */
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 0 0 2px #fff;
-  pointer-events: none; /* don't block clicks on the icon */
+  cursor: pointer;
 
-  /* render text from data-badge via ::after */
-  overflow: hidden;
+  /* “glass” background with safe fallback */
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(var(--color-border, var(--wl-border-rgb)), 0.3);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+
+  color: rgba(var(--color-foreground, var(--wl-fg-rgb)), 0.85);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+
+  /* smooth, restrained transitions */
+  transition:
+    transform .2s cubic-bezier(.4,0,.2,1),
+    box-shadow .2s cubic-bezier(.4,0,.2,1),
+    background-color .2s cubic-bezier(.4,0,.2,1),
+    border-color .2s cubic-bezier(.4,0,.2,1),
+    color .2s cubic-bezier(.4,0,.2,1);
+  text-decoration: none;
+  outline: none;
 }
 
-.header__icon .badge::after,
-.card__badge--wishlist .badge::after{
-  content: attr(data-badge);
+/* Icon */
+.card__badge--wishlist svg{
+  width: 18px; height: 18px;
+  display: block;
+  fill: currentColor;        /* tints fill */
+  stroke: currentColor;      /* tints stroke icons too */
+  stroke-width: 1.6;
+  transition: transform .2s ease;
 }
 
-/* Auto-hide on zero/empty/not set */
-.badge[hidden],
-.badge[data-badge=""],
-.badge[data-count="0"],
-.badge[data-count=""],
-.badge:not([data-count]){
-  display: none !important;
+/* Hover */
+.card__badge--wishlist:hover{
+  background: rgba(255,255,255,1);
+  border-color: rgba(var(--color-button, var(--wl-accent-rgb)), .45);
+  color: rgba(var(--color-button, var(--wl-accent-rgb)), 1);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+}
+.card__badge--wishlist:hover svg{ transform: scale(1.06); }
+
+/* Focus (keyboard/a11y) */
+.card__badge--wishlist:focus-visible{
+  box-shadow:
+    0 0 0 3px rgba(var(--color-button, var(--wl-accent-rgb)), .35),
+    0 2px 10px rgba(0,0,0,.12);
+  transform: scale(1.05);
+}
+
+/* Active / already in wishlist */
+.card__badge--wishlist.in-wishlist,
+.card__badge--wishlist.active{
+  background: rgba(var(--color-button, var(--wl-accent-rgb)), .96);
+  border-color: rgba(var(--color-button, var(--wl-accent-rgb)), 1);
+  color: #fff;
+  transform: scale(1.04);
+}
+.card__badge--wishlist.in-wishlist:hover,
+.card__badge--wishlist.active:hover{
+  background: rgba(var(--color-button, var(--wl-accent-rgb)), 1);
+  box-shadow: 0 4px 15px rgba(var(--color-button, var(--wl-accent-rgb)), .40);
+  transform: scale(1.12);
+}
+
+/* Loading state (prevents double taps) */
+.card__badge--wishlist.loading{
+  pointer-events: none;
+  opacity: .85;
+}
+.card__badge--wishlist.loading svg{
+  animation: wlSpin 1s linear infinite;
+}
+
+/* Added pulse */
+.card__badge--wishlist.added{
+  animation: wlPulse .6s ease-out;
+}
+
+/* Reduce motion preferences */
+@media (prefers-reduced-motion: reduce){
+  .card__badge--wishlist,
+  .card__badge--wishlist svg{
+    transition: none !important;
+  }
+  .card__badge--wishlist.loading svg,
+  .card__badge--wishlist.added{
+    animation: none !important;
+  }
+}
+
+/* Animations */
+@keyframes wlSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+@keyframes wlPulse{
+  0%{ transform: scale(1.02); }
+  50%{ transform: scale(1.22); }
+  100%{ transform: scale(1.04); }
 }
 
 /* Responsive sizes */
 @media (max-width: 768px){
-  :root{ --badge-size: var(--badge-size-md); }
+  .card__badge--wishlist{
+    width: var(--wl-size-md);
+    height: var(--wl-size-md);
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  .card__badge--wishlist svg{ width: 16px; height: 16px; }
 }
 @media (max-width: 480px){
-  :root{ --badge-size: var(--badge-size-sm); }
+  .card__badge--wishlist{
+    width: var(--wl-size-sm);
+    height: var(--wl-size-sm);
+  }
+  .card__badge--wishlist svg{ width: 14px; height: 14px; }
+}
+
+/* Layering with other badges (sale, etc.) */
+.card__badge--sale,
+.badge--sale,
+.product-badge { z-index: calc(var(--wl-z) + 5); }
+
+/* Optional: If some theme overlays cover the heart, bump it slightly */
+.card__media .overlay ~ .card__badge--wishlist{ z-index: calc(var(--wl-z) + 10); }
+.card__badge--wishlist {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.card__badge--wishlist:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+.card__badge--wishlist.in-wishlist svg {
+  color: #e74c3c;
+}
+
+.card__badge--wishlist.loading {
+  opacity: 0.6;
+  pointer-events: none;
 }
