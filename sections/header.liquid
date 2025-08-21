@@ -2790,6 +2790,25 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
 
   // optional: if you ever update cart count via JS, call normalizeCartBubble() again afterwards
 </script>
+<script>
+// Read wishlist from localStorage
+function getWishlist() {
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e) { return []; }
+}
+
+// ✅ REPLACE this whole function:
+function updateWishlistCount() {
+  const items = getWishlist();
+  const count = items.length;
+  const badge = count > 2 ? '2+' : String(count); // 2+ logic
+
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = badge;
+    el.style.display = count > 0 ? 'flex' : 'none';
+  });
+}
+</script>
 
 <script>
 /* ---- Wishlist counter (safe + accessible) ---- */
