@@ -2602,8 +2602,6 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     height: var(--icon-size);
     pointer-events: none;
   }
-/* COUNTER BADGE — always a perfect circle */
-
 
 
   /* Mobile tweaks */
@@ -2627,18 +2625,14 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
       <use href="#icon-search"></use>
     </svg>
   </button>
-<!-- Wishlist icon -->
-<a class="header__icon" href="/pages/wishlist" aria-label="Wishlist">
-  <!-- your heart svg here -->
-  <span class="badge" data-target="wishlist" data-count="0" aria-hidden="true"></span>
-</a>
 
-<!-- Cart icon -->
-<a class="header__icon" href="/cart" aria-label="Cart">
-  <!-- your cart svg here -->
-  <span class="badge" data-target="cart" data-count="12" aria-hidden="true"></span>
-</a>
-
+  <!-- Wishlist -->
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist">
+    <svg width="24" height="24" aria-hidden="true">
+      <use href="#icon-heart"></use>
+    </svg>
+    <span class="badge wishlist-count" hidden></span>
+  </a>
 
   <!-- Account -->
   {%- if shop.customer_accounts_enabled -%}
@@ -2693,45 +2687,6 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
   });
 
   // optional: if you ever update cart count via JS, call normalizeCartBubble() again afterwards
-</script>
-<script>
-(function () {
-  function paintBadges(root = document) {
-    root.querySelectorAll('.badge').forEach(function (b) {
-      var raw = b.getAttribute('data-count');
-      var n = parseInt(raw, 10);
-
-      if (!Number.isFinite(n) || n <= 0) {
-        b.setAttribute('data-badge', '');
-        b.hidden = true;
-        return;
-      }
-
-      b.hidden = false;
-      b.setAttribute('data-badge', n > 9 ? '9+' : String(n));
-    });
-  }
-
-  // Run once on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ paintBadges(); });
-  } else {
-    paintBadges();
-  }
-
-  // Optional: update via custom events
-  // Dispatch like: document.dispatchEvent(new CustomEvent('badge:update', {detail:{target:'wishlist', count: 3}}))
-  document.addEventListener('badge:update', function (e) {
-    var t = e.detail && e.detail.target;
-    var c = e.detail && e.detail.count;
-    if (t == null) return;
-
-    document.querySelectorAll('.badge[data-target="' + t + '"]').forEach(function (b) {
-      b.setAttribute('data-count', c);
-    });
-    paintBadges();
-  });
-})();
 </script>
 
 <script>
