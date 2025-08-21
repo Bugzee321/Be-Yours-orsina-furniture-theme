@@ -315,6 +315,14 @@
   </div>
 {%- endfor -%}
 
+
+<a href="{{ product.url }}"
+   data-wishlist-on-click="1"
+   data-product-id="{{ product.id }}"
+   data-product-handle="{{ product.handle }}">
+  {{ product.title }}
+</a>
+
 <!-- Method 4: Universal approach - Find and modify existing structure -->
 <script>
 // JavaScript to automatically place wishlist badges in image containers
