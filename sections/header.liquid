@@ -2728,11 +2728,13 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     </svg>
   </button>
 
- <a href="/pages/wishlist" class="header__icon header__icon--wishlist" aria-label="Wishlist (0)" title="Wishlist (0)">
-  {% render 'icon-heart' %}
-  <span class="wishlist-count" hidden>0</span>
-</a>
-
+  <!-- Wishlist -->
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist">
+    <svg width="24" height="24" aria-hidden="true">
+      <use href="#icon-heart"></use>
+    </svg>
+    <span class="badge wishlist-count" hidden></span>
+  </a>
 
   <!-- Account -->
   {%- if shop.customer_accounts_enabled -%}
