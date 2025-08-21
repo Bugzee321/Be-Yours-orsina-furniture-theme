@@ -2582,8 +2582,9 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     min-width: 0;
   }
 
-  /* unify buttons & links look/size */
-  .header__icon{
+  /* Only for cart and wishlist icons */
+  .header__icon[href="/cart"],
+  .header__icon[href="/pages/wishlist"] {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -2598,11 +2599,13 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     transition: transform 0.2s ease;
   }
 
-  .header__icon:hover {
+  .header__icon[href="/cart"]:hover,
+  .header__icon[href="/pages/wishlist"]:hover {
     transform: scale(1.05);
   }
 
-  .header__icon svg{
+  .header__icon[href="/cart"] svg,
+  .header__icon[href="/pages/wishlist"] svg {
     width: var(--icon-size);
     height: var(--icon-size);
     pointer-events: none;
@@ -2655,13 +2658,14 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     display: none !important;
   }
 
-  /* Hover effects for icons */
-  .header__icon:hover svg {
+  /* Hover effects for cart and wishlist icons only */
+  .header__icon[href="/cart"]:hover svg,
+  .header__icon[href="/pages/wishlist"]:hover svg {
     color: #e74c3c;
   }
 
-  /* Special styling for active wishlist items */
-  .header__icon:has(.wishlist-count:not([hidden])) svg {
+  /* Special styling for wishlist when it has items */
+  .header__icon[href="/pages/wishlist"]:has(.wishlist-count:not([hidden])) svg {
     color: #e74c3c;
   }
 
@@ -2684,8 +2688,9 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     }
   }
 
-  /* Loading state for wishlist button */
-  .header__icon.loading svg {
+  /* Loading state for cart and wishlist only */
+  .header__icon[href="/cart"].loading svg,
+  .header__icon[href="/pages/wishlist"].loading svg {
     animation: iconSpin 1s linear infinite;
   }
 
@@ -2694,8 +2699,9 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     to { transform: rotate(360deg); }
   }
 
-  /* Accessibility improvements */
-  .header__icon:focus {
+  /* Focus states for cart and wishlist only */
+  .header__icon[href="/cart"]:focus,
+  .header__icon[href="/pages/wishlist"]:focus {
     outline: 2px solid #e74c3c;
     outline-offset: 2px;
     border-radius: 4px;
