@@ -1,10 +1,8 @@
 {%- assign text_direction = 'localization.text_direction_trigger' | t | downcase -%}
 <!doctype html>
-<html class="no-js" lang="{{ request.locale.iso_code }}"
-  {%- if text_direction == 'rtl' %} dir="rtl"{% endif -%}
->
+<html class="no-js" lang="{{ request.locale.iso_code }}" {%- if text_direction == 'rtl' %} dir="rtl"{% endif -%} data-shop-currency="{{ shop.currency }}">
   <head>
- {%- render 'ecom_header' -%}
+    {%- render 'ecom_header' -%}
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -13,14 +11,14 @@
     <link rel="canonical" href="{{ canonical_url }}">
     <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
 
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-M6XM24PT');</script>
-<!-- End Google Tag Manager -->
-    
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-M6XM24PT');</script>
+    <!-- End Google Tag Manager -->
+
     {%- if settings.favicon != blank -%}
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
     {%- endif -%}
@@ -44,6 +42,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     {% render 'meta-tags' %}
     <meta name="google-site-verification" content="Cqi_Sa43Cdge2vGwQSa7GJZv7Jb6NYDqht_ST5B9ID4" />
+
     <script src="{{ 'vendor-v4.js' | asset_url | split: '?' | first }}" defer="defer"></script>
     <script src="{{ 'pubsub.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'global.js' | asset_url }}" defer="defer"></script>
@@ -54,7 +53,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {%- liquid
       render 'css-variables'
       echo 'base.css' | asset_url | stylesheet_tag: preload: true
-      
       if text_direction == 'rtl'
         echo 'rtl.css' | asset_url | stylesheet_tag
       endif
@@ -68,7 +66,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {%- unless settings.type_header_font.system? -%}
       <link rel="preload" as="font" href="{{ settings.type_header_font | font_url }}" type="font/woff2" crossorigin>
     {%- endunless -%}
-    
+
     {%- if settings.predictive_search_enabled -%}
       <link rel="stylesheet" href="{{ 'component-predictive-search.css' | asset_url }}" media="print" onload="this.media='all'">
     {%- endif -%}
@@ -84,91 +82,63 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     {%- endif -%}
 
     {%- render 'js-variables' -%}
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0VQ9YSC07S"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-0VQ9YSC07S');
-</script>
+    <!-- Google tag (gtag.js) - If GA4 is also configured in GTM, you can remove this -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0VQ9YSC07S"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} // eslint-disable-line
+      gtag('js', new Date());
+      gtag('config', 'G-0VQ9YSC07S');
+    </script>
 
     <!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '3414485338688940');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=3414485338688940&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
-<style>
-  @keyframes bounce {
-    from {
-      transform: translateY(0px);
-    }
-    to {
-      transform: translateY(-10px);
-    }
-  }
-  @-webkit-keyframes salePulse {
-  from {
-    background-color: #a85a3b;
-  }
-  50% {
-    background-color: #800020;
-    -webkit-transform: scale(1.1);
-  }
-  to {
-    background-color: #a85a3b;
-  }
-}
-ul.list-menu.list-menu--inline> li:nth-last-child(2) {
-    background: #a85a3b;
-    display: block;
-    width: 50px;
-    text-align: center;
-    /* line-height: 0em; */
-    border-radius: 3em;
-    color: #fff;
-    font-weight: bold;
-    -webkit-animation-name: salePulse;
-    -webkit-animation-duration: 1s;
-    -webkit-animation-iteration-count: infinite;
-    margin: 0 auto;
-  animation: bounce 300ms alternate infinite cubic-bezier(.2, .65, .6, 1);
-}
-  ul.list-menu.list-menu--inline> li:nth-last-child(2):hover {
-    animation-play-state: paused;
-  }
-  ul.list-menu.list-menu--inline> li:nth-last-child(2) a{
-    color:#fff !important
-}
-</style>
-<script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
+    <script>
+      !function(f,b,e,v,n,t,s){
+        if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0; t.src=v;
+        s=b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);
+      }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '3414485338688940');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=3414485338688940&ev=PageView&noscript=1"/></noscript>
+    <!-- End Meta Pixel Code -->
+
+    <!-- Microsoft Clarity -->
+    <script>
+      (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
         t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "r5n66fd3zq");
-</script>
+      })(window, document, "clarity", "script", "r5n66fd3zq");
+    </script>
+    <!-- End Clarity -->
 
-<!-- Metricool Tracking Script -->
-<script>
-function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricoil.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"8711f68830983b188c2b19dbf359784a"})});
-</script>
+    <style>
+      @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+      @-webkit-keyframes salePulse { from { background-color: #a85a3b; } 50% { background-color: #800020; -webkit-transform: scale(1.1); } to { background-color: #a85a3b; } }
+      @keyframes salePulse { from { background-color: #a85a3b; } 50% { background-color: #800020; transform: scale(1.1); } to { background-color: #a85a3b; } }
 
-
-    
+      ul.list-menu.list-menu--inline > li:nth-last-child(2) {
+        background: #a85a3b;
+        display: block;
+        width: 50px;
+        text-align: center;
+        border-radius: 3em;
+        color: #fff;
+        font-weight: bold;
+        -webkit-animation-name: salePulse;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-iteration-count: infinite;
+        margin: 0 auto;
+        animation: bounce 300ms alternate infinite cubic-bezier(.2, .65, .6, 1);
+      }
+      ul.list-menu.list-menu--inline > li:nth-last-child(2):hover { animation-play-state: paused; }
+      ul.list-menu.list-menu--inline > li:nth-last-child(2) a { color:#fff !important; }
+    </style>
   </head>
 
   <body class="template-{{ request.page_type }}{% if request.design_mode %} shopify-design-mode{% endif %}"
@@ -179,26 +149,22 @@ function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document
     {%- if settings.price_superscript %} data-price-superscript{% endif -%}
     {%- if settings.button_corner_radius > 0 %} data-button-round{% endif -%}
   >
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M6XM24PT" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M6XM24PT"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-    
     <a class="skip-to-content-link button button--small visually-hidden" href="#MainContent">
-      {{ "accessibility.skip_to_text" | t }}
+      {{ 'accessibility.skip_to_text' | t }}
     </a>
 
     {% render 'transition-cover' %}
 
     <div class="transition-body">
       {% sections 'header-group' %}
-
       <div class="transition-content">
         <main id="MainContent" class="content-for-layout focus-none shopify-section" role="main" tabindex="-1">
           {{ content_for_layout }}
         </main>
-
         {% sections 'footer-group' %}
       </div>
     </div>
@@ -208,8 +174,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <ul hidden>
       <li id="a11y-refresh-page-message">{{ 'accessibility.refresh_page' | t }}</li>
     </ul>
+
     <svg xmlns="http://www.w3.org/2000/svg" class="hidden">
-      <symbol id="icon-cart" fill="none" viewbox="0 0 18 19">
+      <symbol id="icon-cart" fill="none" viewBox="0 0 18 19">
         <path d="M3.09333 5.87954L16.2853 5.87945V5.87945C16.3948 5.8795 16.4836 5.96831 16.4836 6.07785V11.4909C16.4836 11.974 16.1363 12.389 15.6603 12.4714C11.3279 13.2209 9.49656 13.2033 5.25251 13.9258C4.68216 14.0229 4.14294 13.6285 4.0774 13.0537C3.77443 10.3963 2.99795 3.58502 2.88887 2.62142C2.75288 1.42015 0.905376 1.51528 0.283581 1.51478" stroke="currentColor"/>
         <path d="M13.3143 16.8554C13.3143 17.6005 13.9183 18.2045 14.6634 18.2045C15.4085 18.2045 16.0125 17.6005 16.0125 16.8554C16.0125 16.1104 15.4085 15.5063 14.6634 15.5063C13.9183 15.5063 13.3143 16.1104 13.3143 16.8554Z" fill="currentColor"/>
         <path d="M3.72831 16.8554C3.72831 17.6005 4.33233 18.2045 5.07741 18.2045C5.8225 18.2045 6.42651 17.6005 6.42651 16.8554C6.42651 16.1104 5.8225 15.5063 5.07741 15.5063C4.33233 15.5063 3.72831 16.1104 3.72831 16.8554Z" fill="currentColor"/>
@@ -228,231 +195,169 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {%- if settings.color_swatches_enabled -%}
       <script src="{{ 'color-swatches.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
-    <script src="{{ 'wishlist.js' | asset_url }}" defer></script>
     {%- if linklists.gift-wrapping.links != blank and linklists.gift-wrapping.links.first.type == 'product_link' -%}
       <script src="{{ 'gift-wrapping.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
-  {%- render "ecom_footer"-%}
-  <script>function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"8711f68830983b188c2b19dbf359784a"})});</script>
 
+    {%- render 'ecom_footer' -%}
 
+    <!-- Metricool Tracking (fixed domain & single include) -->
+    <script>
+      (function loadMetricool(cb){
+        var h=document.getElementsByTagName('head')[0], s=document.createElement('script');
+        s.type='text/javascript'; s.async=true; s.src='https://tracker.metricool.com/resources/be.js';
+        s.onload=cb; s.onreadystatechange=cb; h.appendChild(s);
+      })(function(){ try{ beTracker.t({hash:'8711f68830983b188c2b19dbf359784a'}); }catch(e){} });
+    </script>
 
+    <!-- Wishlist logic (unified & fixed) -->
+    <script>
+      (function(){
+        if (window.__WISHLIST_ENHANCED__) return; // guard against double-run
+        window.__WISHLIST_ENHANCED__ = true;
 
-  <script>// Read wishlist from localStorage
-function getWishlist() {
-  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
-  catch(e) { return []; }
-}
+        // LocalStorage keys
+        const LS_WISHLIST = 'wishlist';              // [id, ...]
+        const LS_HANDLES  = 'wishlist_handles';      // [[id, handle], ...]
+        const LS_CACHE    = 'wishlist_cache';        // [[id, productObj], ...]
 
-// Update header counter
-function updateWishlistCount() {
-  const items = getWishlist();
-  const count = items.length;
-  document.querySelectorAll('.wishlist-count').forEach(el => {
-    el.textContent = count;
-    el.style.display = count > 0 ? 'flex' : 'none';
-  });
-}
+        // Utils
+        const readJSON  = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? fb); } catch { return JSON.parse(fb); } };
+        const writeJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+        const currency  = document.documentElement.getAttribute('data-shop-currency') || (window.Shopify && Shopify.currency && Shopify.currency.active) || 'USD';
+        const formatMoney = (cents) => {
+          const n = Number(cents || 0)/100;
+          return n.toFixed(2) + ' ' + currency;
+        };
 
-// Toggle wishlist add/remove
-async function toggleWishlist(productId, productHandle, button) {
-  let wishlist = getWishlist();
-  const id = productId.toString();
+        // State helpers
+        const getList = () => readJSON(LS_WISHLIST, '[]').map(String);
+        const setList = (arr) => { const uniq = Array.from(new Set(arr.map(String))); writeJSON(LS_WISHLIST, uniq); return uniq; };
+        const getHandles = () => new Map(readJSON(LS_HANDLES, '[]'));
+        const setHandles = (m) => writeJSON(LS_HANDLES, [...m.entries()]);
+        const getCache   = () => new Map(readJSON(LS_CACHE,   '[]'));
+        const setCache   = (m) => writeJSON(LS_CACHE,   [...m.entries()]);
 
-  if (wishlist.includes(id)) {
-    // remove
-    wishlist = wishlist.filter(x => x !== id);
-    button.classList.remove('in-wishlist');
-  } else {
-    // add
-    wishlist.push(id);
-    button.classList.add('in-wishlist');
+        // UI helpers
+        const formatBadge = (n) => (n > 9 ? '9+' : String(n));
+        function updateHeaderWishlistCount(){
+          const count = new Set(getList()).size;
+          document.querySelectorAll('.wishlist-count').forEach((el) => {
+            el.textContent = formatBadge(count);
+            el.style.display = count > 0 ? 'flex' : 'none';
+            const label = `Wishlist (${count})`;
+            el.setAttribute('title', label);
+            const parent = el.closest('a,button');
+            if (parent) parent.setAttribute('aria-label', label);
+          });
+        }
+        window.updateWishlistCount = updateHeaderWishlistCount; // optional expose
 
-    // optional: cache product data for wishlist page
-    try {
-      const res = await fetch(`/products/${productHandle}.js`);
-      if (res.ok) {
-        const data = await res.json();
-        const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
-        cache.set(id, data);
-        localStorage.setItem('wishlist_cache', JSON.stringify([...cache]));
-      }
-    } catch(e) {}
-  }
+        // Core toggle
+        async function toggleWishlist(id, handle, btn){
+          id = String(id || '');
+          if (!id) return;
+          let list    = getList();
+          const maps  = getHandles();
+          const cache = getCache();
 
-  localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  updateWishlistCount();
-}
-
-// Render wishlist page
-async function renderWishlistPage() {
-  const grid = document.getElementById('wishlist-grid');
-  if (!grid) return;
-
-  const wishlist = getWishlist();
-  if (!wishlist.length) {
-    grid.innerHTML = '<p>Your wishlist is empty.</p>';
-    return;
-  }
-
-  const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
-  const products = [];
-
-  for (const id of wishlist) {
-    const product = cache.get(id);
-    if (product) products.push(product);
-    // agar cache missing ho to /products/handle.js se fetch kar sakte ho
-  }
-
-  grid.innerHTML = products.map(p => `
-    <div class="wishlist-card">
-      <a href="/products/${p.handle}">
-        <img src="${p.featured_image}" alt="${p.title}">
-      </a>
-      <h3><a href="/products/${p.handle}">${p.title}</a></h3>
-      <p>${(p.price/100).toFixed(2)} ${Shopify.currency.active}</p>
-      <button class="card__badge--wishlist" 
-              data-product-id="${p.id}" 
-              data-product-handle="${p.handle}">
-        Remove
-      </button>
-    </div>
-  `).join('');
-}
-
-// DOM Ready
-document.addEventListener('DOMContentLoaded', () => {
-  updateWishlistCount();
-
-  // Bind product card buttons
-  document.body.addEventListener('click', e => {
-    const btn = e.target.closest('.card__badge--wishlist');
-    if (!btn) return;
-    e.preventDefault();
-    toggleWishlist(btn.dataset.productId, btn.dataset.productHandle, btn);
-  });
-
-  // Render wishlist page if on wishlist.json
-  renderWishlistPage();
-});
-
-// Sync across tabs
-window.addEventListener('storage', e => {
-  if (e.key === 'wishlist') updateWishlistCount();
-});
-</script>       
-<script>
-(() => {
-  // ---- LocalStorage keys ----
-  const LS_WISHLIST = 'wishlist';
-  const LS_HANDLES  = 'wishlist_handles';
-  const LS_CACHE    = 'wishlist_cache';
-
-  // ---- Helpers ----
-  const read = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? fb); } catch { return JSON.parse(fb); } };
-  const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
-  const getList = () => read(LS_WISHLIST, '[]').map(String);
-  const setList = (arr) => {
-    // de-dupe + normalize
-    const uniq = Array.from(new Set(arr.map(String)));
-    write(LS_WISHLIST, uniq);
-    return uniq;
-  };
-
-  const formatBadge = (n) => (n > 9 ? '9+' : String(n));
-
-  function updateHeaderWishlistCount() {
-    const count = new Set(getList()).size; // safety against any old dups
-    document.querySelectorAll('.wishlist-count').forEach((el) => {
-      el.textContent = formatBadge(count);
-      el.style.display = count > 0 ? 'flex' : 'none';
-
-      const label = `Wishlist (${count})`;
-      el.setAttribute('title', label);
-      const parent = el.closest('a,button');
-      if (parent) parent.setAttribute('aria-label', label);
-    });
-  }
-
-  // ---- Toggle on heart buttons ----
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.card__badge--wishlist');
-    if (!btn) return;
-
-    // prevent double taps
-    if (btn.dataset.loading === '1') return;
-    btn.dataset.loading = '1';
-
-    const id = (btn.dataset.productId ?? '').toString();
-    const handle = (btn.dataset.productHandle ?? '').toString();
-    if (!id) { btn.dataset.loading = ''; return; }
-
-    let list = getList();
-    const maps  = new Map(read(LS_HANDLES, '[]')); // id -> handle
-    const cache = new Map(read(LS_CACHE,   '[]')); // id -> product JSON
-
-    const exists = list.includes(id);
-
-    if (exists) {
-      list = list.filter((x) => x !== id);
-      maps.delete(id);
-      cache.delete(id);
-      btn.classList.remove('in-wishlist', 'active');
-      btn.setAttribute('title', 'Add to Wishlist');
-    } else {
-      list.push(id);
-      if (handle) maps.set(id, handle);
-      btn.classList.add('in-wishlist', 'active');
-      btn.setAttribute('title', 'Remove from Wishlist');
-
-      // warm cache so wishlist section turant dikhe
-      if (handle) {
-        try {
-          const r = await fetch(`/products/${handle}.js`);
-          if (r.ok) {
-            const data = await r.json();
-            cache.set(id, data);
+          const exists = list.includes(id);
+          if (exists){
+            list = list.filter((x) => x !== id);
+            maps.delete(id);
+            cache.delete(id);
+            if (btn){ btn.classList.remove('in-wishlist','active'); btn.setAttribute('title','Add to Wishlist'); }
+          } else {
+            list.push(id);
+            if (handle) maps.set(id, String(handle));
+            if (btn){ btn.classList.add('in-wishlist','active'); btn.setAttribute('title','Remove from Wishlist'); }
+            if (handle){
+              try{
+                const r = await fetch(`/products/${handle}.js`);
+                if (r.ok){ const data = await r.json(); cache.set(id, data); }
+              }catch(_e){}
+            }
           }
-        } catch { /* ignore */ }
-      }
-    }
 
-    write(LS_HANDLES, [...maps.entries()]);
-    write(LS_CACHE,   [...cache.entries()]);
-    setList(list);               // save (de-duped)
-    updateHeaderWishlistCount(); // refresh header
+          setHandles(maps); setCache(cache); setList(list); updateHeaderWishlistCount();
+        }
 
-    btn.dataset.loading = '');   // release guard
-  });
+        // Render wishlist page (if present)
+        async function renderWishlistPage(){
+          const grid = document.getElementById('wishlist-grid');
+          if (!grid) return;
 
-  // ---- On load: set initial count + mark active buttons ----
-  document.addEventListener('DOMContentLoaded', () => {
-    updateHeaderWishlistCount();
+          const ids    = getList();
+          const maps   = getHandles();
+          const cache  = getCache();
 
-    const set = new Set(getList());
-    document.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
-      const id = (btn.dataset.productId ?? '').toString();
-      const inList = set.has(id);
-      btn.classList.toggle('in-wishlist', inList);
-      btn.classList.toggle('active', inList);
-      btn.setAttribute('title', inList ? 'Remove from Wishlist' : 'Add to Wishlist');
-    });
-  });
+          if (!ids.length){ grid.innerHTML = '<p>Your wishlist is empty.</p>'; return; }
 
-  // ---- Cross-tab sync ----
-  window.addEventListener('storage', (e) => {
-    if (e.key === LS_WISHLIST) updateHeaderWishlistCount();
-  });
+          // Fetch any missing from cache (parallel)
+          const fetches = ids
+            .filter((id) => !cache.has(id) && maps.has(id))
+            .map(async (id) => {
+              const handle = maps.get(id);
+              try{
+                const r = await fetch(`/products/${handle}.js`);
+                if (r.ok){ const data = await r.json(); cache.set(id, data); }
+              }catch(_e){}
+            });
+          if (fetches.length) await Promise.all(fetches);
+          setCache(cache);
 
-  // optional: expose
-  window.updateWishlistCount = updateHeaderWishlistCount;
-})();
-</script>
+          const products = ids.map((id) => cache.get(id)).filter(Boolean);
+          grid.innerHTML = products.map((p) => {
+            const img = (p.featured_image || (p.images && p.images[0]) || '').toString();
+            const priceCents = Number(p.price_min ?? p.price ?? (p.variants && p.variants[0] && p.variants[0].price) ?? 0);
+            return `
+              <div class="wishlist-card">
+                <a href="/products/${p.handle}">
+                  <img src="${img}" alt="${p.title}" loading="lazy">
+                </a>
+                <h3><a href="/products/${p.handle}">${p.title}</a></h3>
+                <p>${formatMoney(priceCents)}</p>
+                <button class="card__badge--wishlist" data-product-id="${p.id}" data-product-handle="${p.handle}">Remove</button>
+              </div>
+            `;
+          }).join('');
+        }
 
+        // Event bindings
+        document.addEventListener('click', async (e) => {
+          const btn = e.target.closest('.card__badge--wishlist');
+          if (!btn) return;
+          e.preventDefault();
 
+          if (btn.dataset.loading === '1') return; // guard double-taps
+          btn.dataset.loading = '1';
+          await toggleWishlist(btn.dataset.productId, btn.dataset.productHandle, btn);
+          btn.dataset.loading = '';
 
+          // If wishlist page present, re-render after change
+          renderWishlistPage();
+        });
 
-</body>
+        document.addEventListener('DOMContentLoaded', () => {
+          updateHeaderWishlistCount();
+          const set = new Set(getList());
+          document.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
+            const id = String(btn.dataset.productId || '');
+            const inList = set.has(id);
+            btn.classList.toggle('in-wishlist', inList);
+            btn.classList.toggle('active', inList);
+            btn.setAttribute('title', inList ? 'Remove from Wishlist' : 'Add to Wishlist');
+          });
+          renderWishlistPage();
+        });
+
+        window.addEventListener('storage', (e) => {
+          if (e.key === LS_WISHLIST || e.key === LS_CACHE) {
+            updateHeaderWishlistCount();
+            renderWishlistPage();
+          }
+        });
+      })();
+    </script>
+  </body>
 </html>
-          
