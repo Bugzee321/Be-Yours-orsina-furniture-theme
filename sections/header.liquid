@@ -2582,26 +2582,39 @@
 </div>
 
 <style>
-  /* Flexible badge: supports 9+, 99+ etc. */
+  /* Flexible badge: supports 9+, 99+, 100+ */
   .wishlist-count {
     position: absolute;
     top: -8px;
     right: -8px;
     background: #e74c3c;
     color: #fff;
-    border-radius: 999px;      /* pill */
-    min-width: 18px;           /* at least a small circle */
+    border-radius: 999px;          /* pill shape */
+    min-width: 18px;               /* 1 digit = circle */
     height: 18px;
-    padding: 0 5px;            /* space for '9+' */
+    padding: 0 5px;                /* space for 2+ chars like 9+ */
     font-size: 11px;
     font-weight: 600;
-    display: none;             /* JS toggles to flex */
+    display: none;                 /* JS toggles to flex */
     align-items: center;
     justify-content: center;
     line-height: 1;
     box-sizing: border-box;
+    white-space: nowrap;           /* avoid wrapping '99+' */
+    text-align: center;
+  }
+
+  /* small "bump" animation on update (optional) */
+  .wishlist-count.bump {
+    animation: wishlist-bump 0.25s ease;
+  }
+  @keyframes wishlist-bump {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
   }
 </style>
+
 
 <script>
   // ---- Wishlist header counter (9+ format) ----
