@@ -2582,74 +2582,98 @@
 </div>
 
 <style>
-  /* Flexible badge: supports 9+, 99+, 100+ */
-  .wishlist-count {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #e74c3c;
-    color: #fff;
-    border-radius: 1999px;          /* pill shape */
-    min-width: 1px;               /* 1 digit = circle */
-    height: 1px;
-    padding: 0 5px;                /* space for 2+ chars like 9+ */
-    font-size: 11px;
-    font-weight: 600;
-    display: none;                 /* JS toggles to flex */
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    box-sizing: border-box;
-    white-space: nowrap;           /* avoid wrapping '99+' */
-    text-align: center;
+  :root {
+    --wishlist-badge: 18px;           /* circle diameter for 1 digit */
+    --wishlist-padding-x: 6px;        /* extra width for 2+ digits */
   }
 
-  /* small "bump" animation on update (optional) */
-  .wishlist-count.bump {
-    animation: wishlist-bump 0.25s ease;
+  .wishlist-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    display: none;                    /* JS: show when count > 0 */
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    text-align: center;
+    z-index: 1;
+
+    /* base: pill that can grow; height fixed */
+    min-width: var(--wishlist-badge);
+    height: var(--wishlist-badge);
+    padding: 0 var(--wishlist-padding-x);
+    border-radius: 999px;
   }
+
+  /* exactly 1 digit => perfect circle */
+  .wishlist-count.one-digit {
+    width: var(--wishlist-badge);
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  /* optional tiny “bump” animation on change */
+  .wishlist-count.bump { animation: wishlist-bump 0.25s ease; }
   @keyframes wishlist-bump {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.2); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
     100% { transform: scale(1); }
   }
 </style>
 
-
 <script>
-  // ---- Wishlist header counter (9+ format) ----
+  // ---- Wishlist header counter (99+ format) ----
   function readWishlist() {
     try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
     catch (e) { return []; }
   }
 
   function formatWishlistCount(n) {
-    // 9+ cap; change to 99+ if you prefer
-    return n > 9 ? '9+' : String(n);
+    // change to 9+ if you want a tighter cap
+    return n > 99 ? '99+' : String(n);
   }
 
   function updateHeaderWishlistCount() {
     const count = readWishlist().length;
+    const text = formatWishlistCount(count);
     const label = `Wishlist (${count})`;
 
     document.querySelectorAll('.wishlist-count').forEach(el => {
-      el.textContent = formatWishlistCount(count);
+      // text + visibility
+      el.textContent = text;
       el.style.display = count > 0 ? 'flex' : 'none';
       el.setAttribute('title', label);
 
-      // parent link/button ke liye accessible label
+      // accessibility for the parent link/button
       const parent = el.closest('a,button');
       if (parent) parent.setAttribute('aria-label', label);
+
+      // shape classes
+      el.classList.toggle('one-digit', /^\d$/.test(text));
+
+      // cute bump on change
+      el.classList.remove('bump');
+      // force reflow so bump retriggers
+      // eslint-disable-next-line no-unused-expressions
+      void el.offsetWidth;
+      el.classList.add('bump');
     });
   }
 
-  // Load pe update + cross-tab sync
   document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
+
+  // cross-tab sync
   window.addEventListener('storage', (e) => {
     if (e.key === 'wishlist') updateHeaderWishlistCount();
   });
 
-  // OPTIONAL: agar aap ke toggle ke baad ye call hota ho to perfect
+  // expose for manual calls after add/remove actions
   window.updateWishlistCount = updateHeaderWishlistCount;
 </script>
 
