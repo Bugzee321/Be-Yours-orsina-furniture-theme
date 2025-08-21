@@ -798,33 +798,23 @@
 
 /* Optional: If some theme overlays cover the heart, bump it slightly */
 .card__media .overlay ~ .card__badge--wishlist{ z-index: calc(var(--wl-z) + 10); }
-.card__badge--wishlist {
+/* COUNTER BADGE — always a perfect circle */
+.header__icon .badge{
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
+  top: -6px;
+  right: -6px;
+  width: var(--badge-size);
+  height: var(--badge-size);
+  /* was: min-width + padding -> pills; ab fixed square + 50% = circle */
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 5;
-}
-
-.card__badge--wishlist:hover {
-  background: white;
-  transform: scale(1.05);
-}
-
-.card__badge--wishlist.in-wishlist svg {
-  color: #e74c3c;
-}
-
-.card__badge--wishlist.loading {
-  opacity: 0.6;
-  pointer-events: none;
+  box-shadow: 0 0 0 2px #fff;
+  overflow: hidden; /* safety for 2 chars like '9+' */
 }
