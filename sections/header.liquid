@@ -2595,18 +2595,29 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     border: 0;
     cursor: pointer;
     text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+
+  .header__icon:hover {
+    transform: scale(1.05);
   }
 
   .header__icon svg{
     width: var(--icon-size);
     height: var(--icon-size);
     pointer-events: none;
+    transition: color 0.2s ease;
   }
- background-color: #e74c3c;
+
+  /* Badge/Counter styles for both cart and wishlist */
+  .badge,
+  .cart-count-bubble,
+  .wishlist-count {
+    background-color: #e74c3c;
     color: white;
     border-radius: 50%;
-    width: 18px;
-    height: 18px;
+    width: var(--badge-size);
+    height: var(--badge-size);
     font-size: 11px;
     font-weight: 600;
     display: flex;
@@ -2615,15 +2626,44 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     position: absolute;
     top: -8px;
     right: -8px;
-    animation: cartBubblePulse 0.3s ease;
+    line-height: 1;
+    min-width: var(--badge-size);
+    animation: badgePulse 0.3s ease;
+    z-index: 10;
   }
 
-  @keyframes cartBubblePulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+  /* Animation for badge appearance */
+  @keyframes badgePulse {
+    0% { 
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% { 
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
   }
-  
+
+  /* Hide badges when empty */
+  .badge[hidden],
+  .cart-count-bubble[hidden],
+  .wishlist-count[hidden] {
+    display: none !important;
+  }
+
+  /* Hover effects for icons */
+  .header__icon:hover svg {
+    color: #e74c3c;
+  }
+
+  /* Special styling for active wishlist items */
+  .header__icon:has(.wishlist-count:not([hidden])) svg {
+    color: #e74c3c;
+  }
 
   /* Mobile tweaks */
   @media (max-width: 480px){
@@ -2632,7 +2672,46 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
       --right-offset: 10px;
       --tap-size: 36px;
       --icon-size: 22px;
+      --badge-size: 16px;
     }
+
+    .badge,
+    .cart-count-bubble,
+    .wishlist-count {
+      font-size: 10px;
+      top: -6px;
+      right: -6px;
+    }
+  }
+
+  /* Loading state for wishlist button */
+  .header__icon.loading svg {
+    animation: iconSpin 1s linear infinite;
+  }
+
+  @keyframes iconSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Accessibility improvements */
+  .header__icon:focus {
+    outline: 2px solid #e74c3c;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Screen reader only text */
+  .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
   }
 </style>
 
