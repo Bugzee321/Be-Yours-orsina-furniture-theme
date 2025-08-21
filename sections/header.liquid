@@ -2584,6 +2584,35 @@
                  width:18px;height:18px;font-size:11px;font-weight:600;
                  display:flex;align-items:center;justify-content:center;">
     </span>
+    <script>
+      function readWishlist() {
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e) { return []; }
+}
+
+function formatWishlistCount(n) {
+  return n > 9 ? '9+' : String(n);
+}
+
+function updateHeaderWishlistCount() {
+  const count = readWishlist().length;
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = formatWishlistCount(count);
+    el.style.display = count > 0 ? 'flex' : 'none';
+    // accessibility (screen readers)
+    const parent = el.closest('a,button') || el;
+    if (parent) parent.setAttribute('aria-label', `Wishlist (${count})`);
+    el.setAttribute('title', `Wishlist (${count})`);
+  });
+}
+
+// call on load + after toggles + cross-tab sync
+document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
+window.addEventListener('storage', (e) => {
+  if (e.key === 'wishlist') updateHeaderWishlistCount();
+});
+
+    </script>
   </a>
 </div>
 
