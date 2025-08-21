@@ -337,6 +337,67 @@ window.addEventListener('storage', e => {
   if (e.key === 'wishlist') updateWishlistCount();
 });
 </script>       
+<script>
+function readLS(key, fallback){ try{return JSON.parse(localStorage.getItem(key)||fallback);}catch(e){return JSON.parse(fallback);} }
+function writeLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+function updateHeaderWishlistCount(){
+  const count = (readLS('wishlist','[]')||[]).length;
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = String(count);
+    el.style.display = count > 0 ? 'flex' : 'none';
+  });
+}
+
+// Heart click → add/remove + handle + cache save
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.card__badge--wishlist');
+  if (!btn) return;
+
+  const id     = String(btn.dataset.productId || '');
+  const handle = String(btn.dataset.productHandle || '');
+  if (!id) return;
+
+  let list    = readLS('wishlist','[]').map(String);
+  const maps  = new Map(readLS('wishlist_handles','[]')); // id -> handle
+  const cache = new Map(readLS('wishlist_cache','[]'));   // id -> product JSON
+
+  const exists = list.includes(id);
+
+  if (exists) {
+    list = list.filter(x => x !== id);
+    maps.delete(id);
+    cache.delete(id);
+    btn.classList.remove('in-wishlist','active');
+    btn.setAttribute('title','Add to Wishlist');
+  } else {
+    list.push(id);
+    if (handle) maps.set(id, handle);
+    btn.classList.add('in-wishlist','active');
+    btn.setAttribute('title','Remove from Wishlist');
+
+    // Warm cache so wishlist section turant dikhaye
+    try {
+      if (handle) {
+        const r = await fetch(`/products/${handle}.js`);
+        if (r.ok) {
+          const data = await r.json();
+          cache.set(id, data);
+        }
+      }
+    } catch(err){}
+  }
+
+  writeLS('wishlist', list);
+  writeLS('wishlist_handles', [...maps.entries()]);
+  writeLS('wishlist_cache',   [...cache.entries()]);
+  updateHeaderWishlistCount();
+});
+
+// On load + cross-tab
+document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
+window.addEventListener('storage', (e)=>{ if(e.key==='wishlist') updateHeaderWishlistCount(); });
+</script>
 
 
 
