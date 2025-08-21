@@ -238,247 +238,452 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 
 
-  <script>// Read wishlist from localStorage
-function getWishlist() {
-  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
-  catch(e) { return []; }
-}
-
-// Update header counter
-function updateWishlistCount() {
-  const items = getWishlist();
-  const count = items.length;
-  document.querySelectorAll('.wishlist-count').forEach(el => {
-    el.textContent = count;
-    el.style.display = count > 0 ? 'flex' : 'none';
-  });
-}
-
-// Toggle wishlist add/remove
-async function toggleWishlist(productId, productHandle, button) {
-  let wishlist = getWishlist();
-  const id = productId.toString();
-
-  if (wishlist.includes(id)) {
-    // remove
-    wishlist = wishlist.filter(x => x !== id);
-    button.classList.remove('in-wishlist');
-  } else {
-    // add
-    wishlist.push(id);
-    button.classList.add('in-wishlist');
-
-    // optional: cache product data for wishlist page
-    try {
-      const res = await fetch(`/products/${productHandle}.js`);
-      if (res.ok) {
-        const data = await res.json();
-        const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
-        cache.set(id, data);
-        localStorage.setItem('wishlist_cache', JSON.stringify([...cache]));
-      }
-    } catch(e) {}
-  }
-
-  localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  updateWishlistCount();
-}
-
-// Render wishlist page
-async function renderWishlistPage() {
-  const grid = document.getElementById('wishlist-grid');
-  if (!grid) return;
-
-  const wishlist = getWishlist();
-  if (!wishlist.length) {
-    grid.innerHTML = '<p>Your wishlist is empty.</p>';
-    return;
-  }
-
-  const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
-  const products = [];
-
-  for (const id of wishlist) {
-    const product = cache.get(id);
-    if (product) products.push(product);
-    // agar cache missing ho to /products/handle.js se fetch kar sakte ho
-  }
-
-  grid.innerHTML = products.map(p => `
-    <div class="wishlist-card">
-      <a href="/products/${p.handle}">
-        <img src="${p.featured_image}" alt="${p.title}">
-      </a>
-      <h3><a href="/products/${p.handle}">${p.title}</a></h3>
-      <p>${(p.price/100).toFixed(2)} ${Shopify.currency.active}</p>
-      <button class="card__badge--wishlist" 
-              data-product-id="${p.id}" 
-              data-product-handle="${p.handle}">
-        Remove
-      </button>
-    </div>
-  `).join('');
-}
-
-// DOM Ready
-document.addEventListener('DOMContentLoaded', () => {
-  updateWishlistCount();
-
-  // Bind product card buttons
-  document.body.addEventListener('click', e => {
-    const btn = e.target.closest('.card__badge--wishlist');
-    if (!btn) return;
-    e.preventDefault();
-    toggleWishlist(btn.dataset.productId, btn.dataset.productHandle, btn);
-  });
-
-  // Render wishlist page if on wishlist.json
-  renderWishlistPage();
-});
-
-// Sync across tabs
-window.addEventListener('storage', e => {
-  if (e.key === 'wishlist') updateWishlistCount();
-});
-</script>       
-<script>
+  <script>// Complete Wishlist System for Shopify
 (() => {
-  // ==== LocalStorage keys ====
-  const LS_WISHLIST = 'wishlist';         // [id, id, ...] as strings
-  const LS_HANDLES  = 'wishlist_handles'; // [[id, handle], ...]
-  const LS_CACHE    = 'wishlist_cache';   // [[id, productJSON], ...]
+  'use strict';
 
-  // ==== Safe JSON helpers ====
-  const safeParse = (str, fb) => { try { return JSON.parse(str); } catch { return fb; } };
-  const read  = (k, fb) => safeParse(localStorage.getItem(k), fb);
-  const write = (k, v)  => localStorage.setItem(k, JSON.stringify(v));
-
-  // ==== Wishlist list helpers ====
-  const getList = () => (read(LS_WISHLIST, [])).map(String);
-  const setList = (arr) => {
-    const uniq = Array.from(new Set(arr.map(String)));
-    write(LS_WISHLIST, uniq);
-    return uniq;
+  // ==== Configuration ====
+  const CONFIG = {
+    KEYS: {
+      WISHLIST: 'shopify_wishlist',
+      CACHE: 'wishlist_product_cache'
+    },
+    SELECTORS: {
+      WISHLIST_BTN: '.card__badge--wishlist',
+      WISHLIST_COUNT: '.wishlist-count',
+      WISHLIST_GRID: '#wishlist-grid'
+    },
+    CLASSES: {
+      IN_WISHLIST: 'in-wishlist',
+      ACTIVE: 'active'
+    }
   };
 
-  const inWishlist = (id, setObj) => (setObj || new Set(getList())).has(String(id));
-  const clampCount = (n) => (n > 9 ? '9+' : String(n));
-
-  // ==== Header counter ====
-  function updateHeaderWishlistCount(){
-    const count = new Set(getList()).size;
-    document.querySelectorAll('.wishlist-count').forEach((el) => {
-      el.textContent = count ? clampCount(count) : '';
-      el.style.display = count ? 'flex' : 'none';
-      const label = `Wishlist (${count})`;
-      el.setAttribute('title', label);
-      const parent = el.closest('a,button');
-      if (parent) parent.setAttribute('aria-label', label);
-    });
-  }
-
-  // ==== Apply UI state to all heart buttons on page ====
-  function applyWishlistState(root = document){
-    const set = new Set(getList());
-    root.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
-      const id = (btn.dataset.productId || '').toString();
-      const active = id && set.has(id);
-      btn.classList.toggle('in-wishlist', !!active);
-      btn.classList.toggle('active', !!active); // if you style .active somewhere
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.setAttribute('title', active ? 'Remove from Wishlist' : 'Add to Wishlist');
-    });
-  }
-
-  // ==== Toggle logic (add/remove) ====
-  async function toggleWishlistById(id, handle){
-    id = (id || '').toString();
-    if (!id) return;
-
-    let list = getList();
-    const exists = list.includes(id);
-
-    const maps  = new Map(read(LS_HANDLES, [])); // id -> handle
-    const cache = new Map(read(LS_CACHE,   [])); // id -> productJSON
-
-    if (exists) {
-      // remove
-      list = list.filter(x => x !== id);
-      maps.delete(id);
-      cache.delete(id);
-    } else {
-      // add
-      list.push(id);
-      if (handle) maps.set(id, handle);
-
-      // warm cache (optional but nice for wishlist page)
-      if (handle) {
-        try{
-          const r = await fetch(`/products/${handle}.js`);
-          if (r.ok){
-            const data = await r.json();
-            cache.set(id, data);
-          }
-        } catch {/* ignore */}
+  // ==== Utility Functions ====
+  const storage = {
+    get: (key, fallback = []) => {
+      try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : fallback;
+      } catch (e) {
+        console.warn('localStorage get error:', e);
+        return fallback;
+      }
+    },
+    
+    set: (key, value) => {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (e) {
+        console.warn('localStorage set error:', e);
+        return false;
       }
     }
+  };
 
-    write(LS_HANDLES, [...maps.entries()]);
-    write(LS_CACHE,   [...cache.entries()]);
-    setList(list);
+  // ==== Core Wishlist Functions ====
+  const wishlist = {
+    // Get wishlist array
+    get: () => {
+      const items = storage.get(CONFIG.KEYS.WISHLIST, []);
+      return Array.from(new Set(items.map(id => String(id)))); // Remove duplicates
+    },
 
-    // Update UI everywhere:
-    updateHeaderWishlistCount();
-    applyWishlistState();
-  }
+    // Set wishlist array
+    set: (items) => {
+      const uniqueItems = Array.from(new Set(items.map(id => String(id))));
+      storage.set(CONFIG.KEYS.WISHLIST, uniqueItems);
+      return uniqueItems;
+    },
 
-  // ==== Event delegation for clicks ====
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.card__badge--wishlist');
-    if (!btn) return;
+    // Check if item exists
+    has: (productId) => {
+      return wishlist.get().includes(String(productId));
+    },
 
-    // guard against double clicks
-    if (btn.dataset.loading === '1') return;
-    btn.dataset.loading = '1';
+    // Add item to wishlist
+    add: (productId) => {
+      const items = wishlist.get();
+      const id = String(productId);
+      if (!items.includes(id)) {
+        items.push(id);
+        wishlist.set(items);
+        return true;
+      }
+      return false;
+    },
 
-    const id = (btn.dataset.productId || '').toString();
-    const handle = (btn.dataset.productHandle || '').toString();
+    // Remove item from wishlist
+    remove: (productId) => {
+      const items = wishlist.get();
+      const id = String(productId);
+      const newItems = items.filter(item => item !== id);
+      if (newItems.length !== items.length) {
+        wishlist.set(newItems);
+        return true;
+      }
+      return false;
+    },
 
-    toggleWishlistById(id, handle).finally(() => {
-      btn.dataset.loading = '';
-    });
-  });
+    // Toggle item
+    toggle: (productId) => {
+      const id = String(productId);
+      if (wishlist.has(id)) {
+        wishlist.remove(id);
+        return false; // removed
+      } else {
+        wishlist.add(id);
+        return true; // added
+      }
+    },
 
-  // ==== Init on load ====
-  document.addEventListener('DOMContentLoaded', () => {
-    updateHeaderWishlistCount();
-    applyWishlistState();
-  });
+    // Get count
+    count: () => wishlist.get().length,
 
-  // ==== Cross-tab sync ====
-  window.addEventListener('storage', (e) => {
-    if (e.key === LS_WISHLIST) {
-      updateHeaderWishlistCount();
-      applyWishlistState();
+    // Clear all
+    clear: () => {
+      storage.set(CONFIG.KEYS.WISHLIST, []);
+      storage.set(CONFIG.KEYS.CACHE, {});
     }
-  });
+  };
 
-  // ==== Optional: handle dynamically injected cards (infinite scroll, quick view) ====
-  const mo = new MutationObserver((muts) => {
-    for (const m of muts) {
-      m.addedNodes.forEach((node) => {
-        if (!(node instanceof Element)) return;
-        if (node.matches('.card__badge--wishlist') || node.querySelector?.('.card__badge--wishlist')) {
-          applyWishlistState(node);
+  // ==== Product Cache Functions ====
+  const productCache = {
+    get: (productId) => {
+      const cache = storage.get(CONFIG.KEYS.CACHE, {});
+      return cache[String(productId)] || null;
+    },
+
+    set: (productId, productData) => {
+      const cache = storage.get(CONFIG.KEYS.CACHE, {});
+      cache[String(productId)] = productData;
+      storage.set(CONFIG.KEYS.CACHE, cache);
+    },
+
+    remove: (productId) => {
+      const cache = storage.get(CONFIG.KEYS.CACHE, {});
+      delete cache[String(productId)];
+      storage.set(CONFIG.KEYS.CACHE, cache);
+    }
+  };
+
+  // ==== UI Update Functions ====
+  const ui = {
+    // Update header counter
+    updateCounter: () => {
+      const count = wishlist.count();
+      const elements = document.querySelectorAll(CONFIG.SELECTORS.WISHLIST_COUNT);
+      
+      elements.forEach(el => {
+        if (count > 0) {
+          el.textContent = count > 9 ? '9+' : String(count);
+          el.style.display = 'flex';
+          el.setAttribute('aria-label', `Wishlist has ${count} items`);
+        } else {
+          el.textContent = '';
+          el.style.display = 'none';
+          el.setAttribute('aria-label', 'Wishlist is empty');
         }
       });
-    }
-  });
-  mo.observe(document.documentElement, { childList: true, subtree: true });
 
-  // Expose if needed elsewhere
-  window.updateWishlistCount = updateHeaderWishlistCount;
-  window.applyWishlistState = applyWishlistState;
+      // Trigger custom event for other scripts
+      document.dispatchEvent(new CustomEvent('wishlist:updated', {
+        detail: { count, items: wishlist.get() }
+      }));
+    },
+
+    // Update wishlist buttons state
+    updateButtons: (container = document) => {
+      const buttons = container.querySelectorAll(CONFIG.SELECTORS.WISHLIST_BTN);
+      const wishlistItems = new Set(wishlist.get());
+      
+      buttons.forEach(btn => {
+        const productId = btn.dataset.productId;
+        if (!productId) return;
+
+        const isInWishlist = wishlistItems.has(String(productId));
+        
+        // Update classes
+        btn.classList.toggle(CONFIG.CLASSES.IN_WISHLIST, isInWishlist);
+        btn.classList.toggle(CONFIG.CLASSES.ACTIVE, isInWishlist);
+        
+        // Update attributes
+        btn.setAttribute('aria-pressed', isInWishlist ? 'true' : 'false');
+        btn.setAttribute('title', isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist');
+        
+        // Update button text if it has text content
+        const textEl = btn.querySelector('.wishlist-text');
+        if (textEl) {
+          textEl.textContent = isInWishlist ? 'Remove' : 'Add to Wishlist';
+        }
+      });
+    },
+
+    // Update all UI elements
+    updateAll: (container = document) => {
+      ui.updateCounter();
+      ui.updateButtons(container);
+    }
+  };
+
+  // ==== Product API Functions ====
+  const productAPI = {
+    // Fetch product data
+    fetch: async (handle) => {
+      try {
+        const response = await fetch(`/products/${handle}.js`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+      } catch (error) {
+        console.warn('Failed to fetch product:', handle, error);
+        return null;
+      }
+    },
+
+    // Cache product data
+    cache: async (productId, handle) => {
+      if (!handle) return null;
+      
+      let productData = productCache.get(productId);
+      if (!productData) {
+        productData = await productAPI.fetch(handle);
+        if (productData) {
+          productCache.set(productId, productData);
+        }
+      }
+      return productData;
+    }
+  };
+
+  // ==== Main Toggle Function ====
+  const toggleWishlistItem = async (productId, handle) => {
+    if (!productId) return false;
+
+    const id = String(productId);
+    const wasAdded = wishlist.toggle(id);
+    
+    // Update UI immediately
+    ui.updateAll();
+    
+    // Cache product data if added (for wishlist page)
+    if (wasAdded && handle) {
+      await productAPI.cache(id, handle);
+    } else if (!wasAdded) {
+      // Remove from cache if removed from wishlist
+      productCache.remove(id);
+    }
+
+    // Trigger custom event
+    document.dispatchEvent(new CustomEvent('wishlist:toggle', {
+      detail: { 
+        productId: id, 
+        handle, 
+        added: wasAdded,
+        count: wishlist.count()
+      }
+    }));
+
+    return wasAdded;
+  };
+
+  // ==== Event Handlers ====
+  const handleWishlistClick = async (event) => {
+    const button = event.target.closest(CONFIG.SELECTORS.WISHLIST_BTN);
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Prevent double clicks
+    if (button.disabled || button.dataset.processing === 'true') return;
+    
+    button.disabled = true;
+    button.dataset.processing = 'true';
+    
+    const productId = button.dataset.productId;
+    const handle = button.dataset.productHandle;
+    
+    try {
+      // Add loading state
+      button.classList.add('loading');
+      
+      await toggleWishlistItem(productId, handle);
+      
+    } catch (error) {
+      console.error('Wishlist toggle error:', error);
+    } finally {
+      // Remove loading state
+      button.classList.remove('loading');
+      button.disabled = false;
+      button.dataset.processing = 'false';
+    }
+  };
+
+  // ==== Cross-tab Sync ====
+  const handleStorageChange = (event) => {
+    if (event.key === CONFIG.KEYS.WISHLIST) {
+      ui.updateAll();
+    }
+  };
+
+  // ==== Dynamic Content Observer ====
+  const observeNewContent = () => {
+    const observer = new MutationObserver((mutations) => {
+      let shouldUpdate = false;
+      
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node;
+            if (element.matches?.(CONFIG.SELECTORS.WISHLIST_BTN) || 
+                element.querySelector?.(CONFIG.SELECTORS.WISHLIST_BTN)) {
+              shouldUpdate = true;
+            }
+          }
+        });
+      });
+      
+      if (shouldUpdate) {
+        ui.updateButtons();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return observer;
+  };
+
+  // ==== Wishlist Page Functions ====
+  const wishlistPage = {
+    render: async () => {
+      const grid = document.querySelector(CONFIG.SELECTORS.WISHLIST_GRID);
+      if (!grid) return;
+
+      const items = wishlist.get();
+      
+      if (items.length === 0) {
+        grid.innerHTML = `
+          <div class="wishlist-empty">
+            <h3>Your wishlist is empty</h3>
+            <p>Add some products to your wishlist to see them here.</p>
+            <a href="/collections/all" class="btn btn-primary">Continue Shopping</a>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = '<div class="loading">Loading your wishlist...</div>';
+
+      try {
+        const products = [];
+        for (const productId of items) {
+          const cached = productCache.get(productId);
+          if (cached) {
+            products.push(cached);
+          }
+        }
+
+        if (products.length === 0) {
+          grid.innerHTML = `
+            <div class="wishlist-error">
+              <p>Unable to load wishlist items. Please try refreshing the page.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const html = products.map(product => `
+          <div class="wishlist-item" data-product-id="${product.id}">
+            <div class="wishlist-item__image">
+              <a href="/products/${product.handle}">
+                <img src="${product.featured_image || product.images[0]?.src || '/assets/no-image.png'}" 
+                     alt="${product.title}" 
+                     loading="lazy">
+              </a>
+            </div>
+            <div class="wishlist-item__details">
+              <h3 class="wishlist-item__title">
+                <a href="/products/${product.handle}">${product.title}</a>
+              </h3>
+              <div class="wishlist-item__price">
+                ${(product.price / 100).toFixed(2)} ${window.Shopify?.currency?.active || 'USD'}
+              </div>
+              <div class="wishlist-item__actions">
+                <button class="card__badge--wishlist btn btn-outline" 
+                        data-product-id="${product.id}" 
+                        data-product-handle="${product.handle}"
+                        title="Remove from Wishlist">
+                  Remove from Wishlist
+                </button>
+                <a href="/products/${product.handle}" class="btn btn-primary">
+                  View Product
+                </a>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        grid.innerHTML = html;
+        ui.updateButtons(grid);
+
+      } catch (error) {
+        console.error('Wishlist render error:', error);
+        grid.innerHTML = `
+          <div class="wishlist-error">
+            <p>Error loading wishlist. Please try again.</p>
+          </div>
+        `;
+      }
+    }
+  };
+
+  // ==== Initialization ====
+  const init = () => {
+    // Update UI on load
+    ui.updateAll();
+
+    // Set up event listeners
+    document.addEventListener('click', handleWishlistClick);
+    window.addEventListener('storage', handleStorageChange);
+
+    // Observe dynamic content
+    observeNewContent();
+
+    // Render wishlist page if we're on it
+    if (window.location.pathname.includes('wishlist') || 
+        document.querySelector(CONFIG.SELECTORS.WISHLIST_GRID)) {
+      wishlistPage.render();
+    }
+
+    // Mark as initialized
+    document.documentElement.setAttribute('data-wishlist-init', 'true');
+    
+    console.log('Wishlist system initialized');
+  };
+
+  // ==== Public API ====
+  window.Wishlist = {
+    add: wishlist.add,
+    remove: wishlist.remove,
+    toggle: wishlist.toggle,
+    has: wishlist.has,
+    get: wishlist.get,
+    count: wishlist.count,
+    clear: wishlist.clear,
+    updateUI: ui.updateAll,
+    renderPage: wishlistPage.render
+  };
+
+  // ==== Start ====
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 
