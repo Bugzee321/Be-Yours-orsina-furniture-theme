@@ -2559,67 +2559,182 @@
         </nav>
       {%- endif -%}
     </div>
+{%- comment -%}
+HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile friendly
+{%- endcomment -%}
 
-    <!-- RIGHT: Search (Desktop Only) + Account + Cart Icons -->
-    <!-- RIGHT: Search + Wishlist + Compare + Account + Cart Icons -->
-<div class="header__right">
-  <!-- Search Icon - Desktop Only -->
-  <button class="header__icon search-modal-toggle" onclick="openSearchModal()" title="{{ 'general.search.search' | t }}">
-    <svg width="24" height="24">
+<style>
+  :root{
+    --icon-gap: 14px;          /* equal space between icons (desktop) */
+    --right-offset: 12px;      /* little gap from the right edge (desktop) */
+    --tap-size: 40px;          /* touch target size */
+    --icon-size: 24px;         /* svg size */
+    --badge-size: 18px;        /* counter bubble size */
+  }
+
+  .header__right{
+    margin-left: auto;                 /* push to the right */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--icon-gap);
+    padding-right: var(--right-offset);
+    min-width: 0;
+  }
+
+  /* unify buttons & links look/size */
+  .header__icon{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap-size);
+    height: var(--tap-size);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .header__icon svg{
+    width: var(--icon-size);
+    height: var(--icon-size);
+    pointer-events: none;
+  }
+/* COUNTER BADGE — always a perfect circle */
+.header__icon .badge{
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: var(--badge-size);
+  height: var(--badge-size);
+  /* was: min-width + padding -> pills; ab fixed square + 50% = circle */
+  border-radius: 50%;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #fff;
+  overflow: hidden; /* safety for 2 chars like '9+' */
+}
+
+
+  /* Mobile tweaks */
+  @media (max-width: 480px){
+    :root{
+      --icon-gap: 10px;
+      --right-offset: 10px;
+      --tap-size: 36px;
+      --icon-size: 22px;
+    }
+  }
+</style>
+
+<div class="header__right" role="group" aria-label="Header actions">
+  <!-- Search -->
+  <button class="header__icon search-modal-toggle"
+          onclick="openSearchModal()"
+          aria-label="{{ 'general.search.search' | t }}"
+          title="{{ 'general.search.search' | t }}">
+    <svg width="24" height="24" aria-hidden="true">
       <use href="#icon-search"></use>
     </svg>
   </button>
-           
-<a href="/pages/wishlist" class="header__icon" title="Wishlist" style="position:relative;">
-  <svg width="24" height="24">
-    <use href="#icon-heart"></use>
-  </svg>
-  <span class="wishlist-count" style="display:none;position:absolute;top:-8px;right:-8px;background:#e74c3c;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;"></span>
-</a>
 
-  <!-- Compare with modern icon 
-  <button class="header__icon compare-toggle" onclick="toggleComparePopup()" title="Compare products">
-    <svg width="24" height="24">
-      <use href="#icon-compare"></use>
+  <!-- Wishlist -->
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist">
+    <svg width="24" height="24" aria-hidden="true">
+      <use href="#icon-heart"></use>
     </svg>
-  </button>-->
+    <span class="badge wishlist-count" hidden></span>
+  </a>
 
   <!-- Account -->
   {%- if shop.customer_accounts_enabled -%}
-    <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon" title="{%- if customer -%}{{ 'customer.account_fallback' | t }}{%- else -%}{{ 'customer.log_in' | t }}{%- endif -%}">
-      <svg width="24" height="24">
+    <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
+       class="header__icon"
+       title="{% if customer %}{{ 'customer.account_fallback' | t }}{% else %}{{ 'customer.log_in' | t }}{% endif %}"
+       aria-label="{% if customer %}{{ 'customer.account_fallback' | t }}{% else %}{{ 'customer.log_in' | t }}{% endif %}">
+      <svg width="24" height="24" aria-hidden="true">
         <use href="#icon-account"></use>
       </svg>
     </a>
   {%- endif -%}
 
-  <!-- Cart - Opens Drawer with Perfect Empty State Handling -->
-  <button class="header__icon" id="cart-icon-bubble" onclick="openCartDrawer()" title="{{ 'templates.cart.cart' | t }}">
-    <svg width="24" height="24">
-      <use href="#icon-cart"></use>
-    </svg>
-    <span class="cart-count-bubble" style="display: {% if cart.item_count > 0 %}flex{% else %}none{% endif %}">
-      {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
-    </span>
-  </button>
+ <!-- Cart -->
+<button class="header__icon"
+        id="cart-icon-bubble"
+        onclick="openCartDrawer()"
+        title="{{ 'templates.cart.cart' | t }}"
+        aria-label="{{ 'templates.cart.cart' | t }}">
+  <svg width="24" height="24" aria-hidden="true">
+    <use href="#icon-cart"></use>
+  </svg>
+  <span class="badge cart-count-bubble"
+        data-count="{{ cart.item_count }}"
+        {% if cart.item_count == 0 %}hidden{% endif %}>
+    {% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}
+  </span>
+</button>
+
 </div>
-  </header>
-</{% if enable_sticky_header %}sticky-header{% else %}div{% endif %}>
+<script>
+  function clampCount(n){ return n > 9 ? '9+' : String(n); }
 
-<!-- Compare Products Popup - Add this after your header 
-<div id="compare-popup" class="compare-popup hidden">
-  <div class="compare-overlay" onclick="closeComparePopup()"></div>
-  <div class="compare-modal">
-    <button class="compare-close" onclick="closeComparePopup()">
-      <svg width="20" height="20">
-        <use href="#icon-close"></use>
-      </svg>
-    </button>
-    <h3>Compare Products</h3>
-    <div id="compare-content">Loading...</div>
-  </div>
-</div>-->
+  function normalizeCartBubble(){
+    const el = document.querySelector('.cart-count-bubble');
+    if(!el) return;
+    const raw = parseInt(el.getAttribute('data-count') || el.textContent || '0', 10) || 0;
+    el.textContent = raw > 0 ? clampCount(raw) : '';
+    el.toggleAttribute('hidden', raw === 0);
 
+    const parent = el.closest('button');
+    if(parent){
+      parent.setAttribute('aria-label', `Cart (${raw})`);
+      parent.setAttribute('title', `Cart (${raw})`);
+    }
+  }
+
+  // wishlist already handled; just call cart normalizer too
+  document.addEventListener('DOMContentLoaded', () => {
+    updateHeaderWishlistCount && updateHeaderWishlistCount();
+    normalizeCartBubble();
+  });
+
+  // optional: if you ever update cart count via JS, call normalizeCartBubble() again afterwards
+</script>
+
+<script>
+/* ---- Wishlist counter (safe + accessible) ---- */
+function readWishlist(){
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e){ return []; }
+}
+function formatWishlistCount(n){ return n > 9 ? '9+' : String(n); }
+
+function updateHeaderWishlistCount(){
+  const count = readWishlist().length;
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = count > 0 ? formatWishlistCount(count) : '';
+    el.toggleAttribute('hidden', count === 0);
+    const parent = el.closest('a,button') || el;
+    if (parent){
+      parent.setAttribute('aria-label', `Wishlist (${count})`);
+      parent.setAttribute('title', `Wishlist (${count})`);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
+window.addEventListener('storage', (e) => {
+  if (e.key === 'wishlist') updateHeaderWishlistCount();
+});
+</script>
 
 <!-- Enhanced Cart Drawer HTML -->
 <div class="cart-drawer-overlay" onclick="closeCartDrawer()"></div>

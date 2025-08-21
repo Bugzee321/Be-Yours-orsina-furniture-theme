@@ -167,6 +167,7 @@ ul.list-menu.list-menu--inline> li:nth-last-child(2) {
 function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricoil.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"8711f68830983b188c2b19dbf359784a"})});
 </script>
 
+
     
   </head>
 
@@ -233,6 +234,258 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {%- endif -%}
   {%- render "ecom_footer"-%}
   <script>function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"8711f68830983b188c2b19dbf359784a"})});</script>
-        </body>
+
+
+
+
+  <script>// Read wishlist from localStorage
+function getWishlist() {
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e) { return []; }
+}
+
+// Update header counter
+function updateWishlistCount() {
+  const items = getWishlist();
+  const count = items.length;
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = count;
+    el.style.display = count > 0 ? 'flex' : 'none';
+  });
+}
+
+// Toggle wishlist add/remove
+async function toggleWishlist(productId, productHandle, button) {
+  let wishlist = getWishlist();
+  const id = productId.toString();
+
+  if (wishlist.includes(id)) {
+    // remove
+    wishlist = wishlist.filter(x => x !== id);
+    button.classList.remove('in-wishlist');
+  } else {
+    // add
+    wishlist.push(id);
+    button.classList.add('in-wishlist');
+
+    // optional: cache product data for wishlist page
+    try {
+      const res = await fetch(`/products/${productHandle}.js`);
+      if (res.ok) {
+        const data = await res.json();
+        const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
+        cache.set(id, data);
+        localStorage.setItem('wishlist_cache', JSON.stringify([...cache]));
+      }
+    } catch(e) {}
+  }
+
+  localStorage.setItem('wishlist', JSON.stringify(wishlist));
+  updateWishlistCount();
+}
+
+// Render wishlist page
+async function renderWishlistPage() {
+  const grid = document.getElementById('wishlist-grid');
+  if (!grid) return;
+
+  const wishlist = getWishlist();
+  if (!wishlist.length) {
+    grid.innerHTML = '<p>Your wishlist is empty.</p>';
+    return;
+  }
+
+  const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
+  const products = [];
+
+  for (const id of wishlist) {
+    const product = cache.get(id);
+    if (product) products.push(product);
+    // agar cache missing ho to /products/handle.js se fetch kar sakte ho
+  }
+
+  grid.innerHTML = products.map(p => `
+    <div class="wishlist-card">
+      <a href="/products/${p.handle}">
+        <img src="${p.featured_image}" alt="${p.title}">
+      </a>
+      <h3><a href="/products/${p.handle}">${p.title}</a></h3>
+      <p>${(p.price/100).toFixed(2)} ${Shopify.currency.active}</p>
+      <button class="card__badge--wishlist" 
+              data-product-id="${p.id}" 
+              data-product-handle="${p.handle}">
+        Remove
+      </button>
+    </div>
+  `).join('');
+}
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', () => {
+  updateWishlistCount();
+
+  // Bind product card buttons
+  document.body.addEventListener('click', e => {
+    const btn = e.target.closest('.card__badge--wishlist');
+    if (!btn) return;
+    e.preventDefault();
+    toggleWishlist(btn.dataset.productId, btn.dataset.productHandle, btn);
+  });
+
+  // Render wishlist page if on wishlist.json
+  renderWishlistPage();
+});
+
+// Sync across tabs
+window.addEventListener('storage', e => {
+  if (e.key === 'wishlist') updateWishlistCount();
+});
+</script>       
+<script>
+(() => {
+  // ==== LocalStorage keys ====
+  const LS_WISHLIST = 'wishlist';         // [id, id, ...] as strings
+  const LS_HANDLES  = 'wishlist_handles'; // [[id, handle], ...]
+  const LS_CACHE    = 'wishlist_cache';   // [[id, productJSON], ...]
+
+  // ==== Safe JSON helpers ====
+  const safeParse = (str, fb) => { try { return JSON.parse(str); } catch { return fb; } };
+  const read  = (k, fb) => safeParse(localStorage.getItem(k), fb);
+  const write = (k, v)  => localStorage.setItem(k, JSON.stringify(v));
+
+  // ==== Wishlist list helpers ====
+  const getList = () => (read(LS_WISHLIST, [])).map(String);
+  const setList = (arr) => {
+    const uniq = Array.from(new Set(arr.map(String)));
+    write(LS_WISHLIST, uniq);
+    return uniq;
+  };
+
+  const inWishlist = (id, setObj) => (setObj || new Set(getList())).has(String(id));
+  const clampCount = (n) => (n > 9 ? '9+' : String(n));
+
+  // ==== Header counter ====
+  function updateHeaderWishlistCount(){
+    const count = new Set(getList()).size;
+    document.querySelectorAll('.wishlist-count').forEach((el) => {
+      el.textContent = count ? clampCount(count) : '';
+      el.style.display = count ? 'flex' : 'none';
+      const label = `Wishlist (${count})`;
+      el.setAttribute('title', label);
+      const parent = el.closest('a,button');
+      if (parent) parent.setAttribute('aria-label', label);
+    });
+  }
+
+  // ==== Apply UI state to all heart buttons on page ====
+  function applyWishlistState(root = document){
+    const set = new Set(getList());
+    root.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
+      const id = (btn.dataset.productId || '').toString();
+      const active = id && set.has(id);
+      btn.classList.toggle('in-wishlist', !!active);
+      btn.classList.toggle('active', !!active); // if you style .active somewhere
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      btn.setAttribute('title', active ? 'Remove from Wishlist' : 'Add to Wishlist');
+    });
+  }
+
+  // ==== Toggle logic (add/remove) ====
+  async function toggleWishlistById(id, handle){
+    id = (id || '').toString();
+    if (!id) return;
+
+    let list = getList();
+    const exists = list.includes(id);
+
+    const maps  = new Map(read(LS_HANDLES, [])); // id -> handle
+    const cache = new Map(read(LS_CACHE,   [])); // id -> productJSON
+
+    if (exists) {
+      // remove
+      list = list.filter(x => x !== id);
+      maps.delete(id);
+      cache.delete(id);
+    } else {
+      // add
+      list.push(id);
+      if (handle) maps.set(id, handle);
+
+      // warm cache (optional but nice for wishlist page)
+      if (handle) {
+        try{
+          const r = await fetch(`/products/${handle}.js`);
+          if (r.ok){
+            const data = await r.json();
+            cache.set(id, data);
+          }
+        } catch {/* ignore */}
+      }
+    }
+
+    write(LS_HANDLES, [...maps.entries()]);
+    write(LS_CACHE,   [...cache.entries()]);
+    setList(list);
+
+    // Update UI everywhere:
+    updateHeaderWishlistCount();
+    applyWishlistState();
+  }
+
+  // ==== Event delegation for clicks ====
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.card__badge--wishlist');
+    if (!btn) return;
+
+    // guard against double clicks
+    if (btn.dataset.loading === '1') return;
+    btn.dataset.loading = '1';
+
+    const id = (btn.dataset.productId || '').toString();
+    const handle = (btn.dataset.productHandle || '').toString();
+
+    toggleWishlistById(id, handle).finally(() => {
+      btn.dataset.loading = '';
+    });
+  });
+
+  // ==== Init on load ====
+  document.addEventListener('DOMContentLoaded', () => {
+    updateHeaderWishlistCount();
+    applyWishlistState();
+  });
+
+  // ==== Cross-tab sync ====
+  window.addEventListener('storage', (e) => {
+    if (e.key === LS_WISHLIST) {
+      updateHeaderWishlistCount();
+      applyWishlistState();
+    }
+  });
+
+  // ==== Optional: handle dynamically injected cards (infinite scroll, quick view) ====
+  const mo = new MutationObserver((muts) => {
+    for (const m of muts) {
+      m.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        if (node.matches('.card__badge--wishlist') || node.querySelector?.('.card__badge--wishlist')) {
+          applyWishlistState(node);
+        }
+      });
+    }
+  });
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+
+  // Expose if needed elsewhere
+  window.updateWishlistCount = updateHeaderWishlistCount;
+  window.applyWishlistState = applyWishlistState;
+})();
+</script>
+
+
+
+
+
+</body>
 </html>
           

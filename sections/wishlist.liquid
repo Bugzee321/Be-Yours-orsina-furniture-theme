@@ -1,0 +1,241 @@
+{% comment %}
+  Reusable Wishlist Section
+  - Reads localStorage "wishlist" (array of product IDs as strings)
+  - Optionally reads "wishlist_handles" (Map of id -> handle)
+  - Optionally reads "wishlist_cache" (Map of id -> product JSON from /products/{handle}.js)
+  - Renders a grid of wishlist items with remove buttons
+{% endcomment %}
+
+<section id="wishlist-{{ section.id }}" class="wishlist-section page-width">
+  <h1 class="wishlist-title">Your Wishlist</h1>
+
+  <div class="wishlist-toolbar" style="display:flex;gap:12px;align-items:center;justify-content:space-between;margin:10px 0 20px;">
+    <div class="wishlist-count-pill" style="font-weight:600;"></div>
+    <button type="button" class="wishlist-clear button" style="display:none;">Clear Wishlist</button>
+  </div>
+
+  <div class="wishlist-empty" style="display:none;text-align:center;padding:40px 10px;">
+    <p>Your wishlist is empty.</p>
+    <a href="/" class="button">Continue Shopping</a>
+  </div>
+
+  <div class="wishlist-grid" 
+       style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+    <!-- items injected by JS -->
+  </div>
+
+  <div class="wishlist-loading" style="text-align:center;padding:30px;display:none;">
+    Loading...
+  </div>
+</section>
+
+<script>
+(function() {
+  const $root   = document.getElementById('wishlist-{{ section.id }}');
+  const $grid   = $root.querySelector('.wishlist-grid');
+  const $empty  = $root.querySelector('.wishlist-empty');
+  const $count  = $root.querySelector('.wishlist-count-pill');
+  const $clear  = $root.querySelector('.wishlist-clear');
+  const $load   = $root.querySelector('.wishlist-loading');
+
+  // ---------- LocalStorage Helpers ----------
+  function readLS(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || fallback); } catch(e) { return JSON.parse(fallback); }
+  }
+  function writeLS(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getWishlist() {
+    return readLS('wishlist', '[]').map(String);
+  }
+  function setWishlist(arr) {
+    writeLS('wishlist', arr.map(String));
+    // also emit so other tabs/areas update
+    try {
+      // No-op write to trigger storage listeners on same tab? Not needed.
+    } catch(e){}
+  }
+  function getHandlesMap() {
+    // stored as entries array: [[id, handle], ...]
+    return new Map(readLS('wishlist_handles', '[]'));
+  }
+  function setHandlesMap(map) {
+    writeLS('wishlist_handles', [...map.entries()]);
+  }
+  function getCacheMap() {
+    return new Map(readLS('wishlist_cache', '[]'));
+  }
+  function setCacheMap(map) {
+    writeLS('wishlist_cache', [...map.entries()]);
+  }
+
+  function updateHeaderCount() {
+    const count = getWishlist().length;
+    document.querySelectorAll('.wishlist-count').forEach(el => {
+      el.textContent = String(count);
+      el.style.display = count > 0 ? 'flex' : 'none';
+    });
+  }
+  window.updateWishlistCount = updateHeaderCount; // expose (optional)
+
+  // ---------- Render ----------
+  function priceToString(pennies) {
+    // pennies to currency; relies on Shopify.currency.active if present
+    try {
+      const amount = (pennies / 100).toFixed(2);
+      if (window.Shopify && Shopify.currency && Shopify.currency.active) {
+        return amount + ' ' + Shopify.currency.active;
+      }
+      return amount;
+    } catch(e) { return ''; }
+  }
+
+  function renderEmpty(isEmpty) {
+    $empty.style.display = isEmpty ? 'block' : 'none';
+    $clear.style.display = isEmpty ? 'none' : 'inline-flex';
+    $count.textContent = isEmpty ? '0 item' : getWishlist().length + ' item(s)';
+  }
+
+  function renderCards(products) {
+    $grid.innerHTML = products.map(p => {
+      const img = p.featured_image || (p.images && p.images[0]) || '';
+      const price = p.variants && p.variants[0] ? priceToString(p.variants[0].price) : '';
+      const handle = p.handle;
+      const pid = String(p.id);
+
+      return `
+        <article class="wishlist-card" data-id="${pid}" style="border:1px solid #eee;border-radius:12px;overflow:hidden;">
+          <a href="/products/${handle}" class="wishlist-card__image" style="display:block;aspect-ratio:1/1;background:#fafafa;">
+            ${img ? `<img src="${img}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover;">` : ''}
+          </a>
+          <div class="wishlist-card__body" style="padding:12px;display:grid;gap:8px;">
+            <h3 style="font-size:14px;line-height:1.4;"><a href="/products/${handle}">${p.title}</a></h3>
+            ${price ? `<div class="wishlist-card__price" style="font-weight:600;">${price}</div>` : ''}
+            <div style="display:flex;gap:8px;">
+              <a class="button" href="/products/${handle}" style="flex:1;text-align:center;">View</a>
+              <button class="button-outline remove-from-wishlist" data-product-id="${pid}" data-product-handle="${handle}">
+                Remove
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  async function fetchProductByHandle(handle) {
+    const res = await fetch('/products/' + handle + '.js');
+    if (!res.ok) throw new Error('Fetch failed');
+    return await res.json();
+  }
+
+  async function buildProductsList() {
+    const ids = getWishlist();
+    const handles = getHandlesMap();
+    const cache = getCacheMap();
+    const products = [];
+
+    for (const id of ids) {
+      // from cache first
+      let p = cache.get(id);
+      if (p) {
+        products.push(p);
+        continue;
+      }
+      // use handle map to fetch
+      const handle = handles.get(id);
+      if (handle) {
+        try {
+          p = await fetchProductByHandle(handle);
+          if (p) {
+            products.push(p);
+            cache.set(id, p);
+          }
+        } catch(e) {}
+      }
+    }
+    setCacheMap(cache);
+    return products;
+  }
+
+  async function renderWishlist() {
+    $load.style.display = 'block';
+    $grid.innerHTML = '';
+    const ids = getWishlist();
+    renderEmpty(ids.length === 0);
+    if (!ids.length) {
+      $load.style.display = 'none';
+      updateHeaderCount();
+      return;
+    }
+    const products = await buildProductsList();
+    renderCards(products);
+    $load.style.display = 'none';
+    renderEmpty(products.length === 0);
+    updateHeaderCount();
+  }
+
+  // ---------- Events ----------
+  // remove single
+  $root.addEventListener('click', (e) => {
+    const btn = e.target.closest('.remove-from-wishlist');
+    if (!btn) return;
+    const id = String(btn.dataset.productId || '');
+    if (!id) return;
+
+    let list = getWishlist().filter(x => x !== id);
+    setWishlist(list);
+
+    // also tidy cache/handles (optional)
+    const cache = getCacheMap();
+    const handles = getHandlesMap();
+    cache.delete(id);
+    handles.delete(id);
+    setCacheMap(cache);
+    setHandlesMap(handles);
+
+    renderWishlist();
+  });
+
+  // clear all
+  $clear.addEventListener('click', () => {
+    setWishlist([]);
+    setCacheMap(new Map());
+    setHandlesMap(new Map());
+    renderWishlist();
+  });
+
+  // cross-tab updates
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'wishlist' || e.key === 'wishlist_handles' || e.key === 'wishlist_cache') {
+      renderWishlist();
+    }
+  });
+
+  // boot
+  document.addEventListener('DOMContentLoaded', renderWishlist);
+})();
+</script>
+
+<script>
+  // ...same code as before...
+
+  async function fetchProductByHandle(handle) {
+    const res = await fetch('/products/' + handle + '.js');
+    if (!res.ok) {
+      console.warn('Wishlist fetch failed for handle:', handle, res.status);
+      throw new Error('Fetch failed');
+    }
+    return await res.json();
+  }
+
+  // ...rest same...
+</script>
+
+{% schema %}
+{
+  "name": "Wishlist",
+  "settings": []
+}
+{% endschema %}
