@@ -2573,7 +2573,7 @@
 <!-- Header Right Icons -->
 <div class="header__right">
   <!-- Wishlist Icon with Counter -->
-  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist" >
+  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist">
     <svg width="24" height="24" aria-hidden="true" focusable="false">
       <use href="#icon-heart"></use>
     </svg>
@@ -2582,41 +2582,32 @@
 </div>
 
 <style>
-  /* Layout: push this container to the far right (desktop & mobile) */
+  /* container: always flex, right aligned */
   .header__right {
-    margin-left: auto;
+    margin-left: auto;           /* push to right */
     display: flex;
     align-items: center;
     gap: 12px;
   }
+
+  /* icon wrapper */
   .header__icon {
-    position: relative;          /* so the badge positions correctly */
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 0;
   }
 
-  /* Make sure it's right-aligned on small screens, too */
-  @media (max-width: 768px) {
-    .header__right {
-      margin-left: auto;
-      margin-right: 0;
-      display: flex !important;  /* in case theme hides it on mobile */
-      align-items: center;
-      gap: 10px;
-    }
-  }
-
-  /* Always-circle badge */
+  /* badge: always circle */
   .wishlist-count {
     position: absolute;
     top: -8px;
     right: -8px;
     background: #e74c3c;
     color: #fff;
-    border-radius: 50%;
-    width: 20px;                 /* fixed circle */
+    border-radius: 50%;          /* always circle */
+    width: 20px;
     height: 20px;
     font-size: 11px;
     font-weight: 700;
@@ -2625,14 +2616,16 @@
     justify-content: center;
     line-height: 1;
     box-sizing: border-box;
-    white-space: nowrap;         /* keep "9+" on one line */
+    white-space: nowrap;
     text-align: center;
   }
 
   /* optional bump animation */
   .wishlist-count.bump { animation: wishlist-bump 0.25s ease; }
   @keyframes wishlist-bump {
-    0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
   }
 </style>
 
@@ -2644,7 +2637,6 @@
   }
 
   function formatWishlistCount(n) {
-    // cap at 9+ to keep the circle neat
     return n > 9 ? '9+' : String(n);
   }
 
@@ -2660,18 +2652,15 @@
       const parent = el.closest('a,button');
       if (parent) parent.setAttribute('aria-label', label);
 
-      // optional bump effect
+      // bump effect
       el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
     });
   }
 
-  // Initialize + cross-tab sync
   document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
   window.addEventListener('storage', (e) => {
     if (e.key === 'wishlist') updateHeaderWishlistCount();
   });
-
-  // expose for your toggle script
   window.updateWishlistCount = updateHeaderWishlistCount;
 </script>
 
