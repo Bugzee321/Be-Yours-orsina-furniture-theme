@@ -281,6 +281,7 @@
 
           setHandles(maps); setCache(cache); setList(list); updateHeaderWishlistCount();
         }
+          window.dispatchEvent(new CustomEvent('wishlist:changed', { detail: { ids: list } }));
 
         // Render wishlist page (if present)
         async function renderWishlistPage(){
