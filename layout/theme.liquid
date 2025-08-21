@@ -167,6 +167,7 @@ ul.list-menu.list-menu--inline> li:nth-last-child(2) {
 function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricoil.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"8711f68830983b188c2b19dbf359784a"})});
 </script>
 
+
     
   </head>
 
@@ -233,6 +234,113 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     {%- endif -%}
   {%- render "ecom_footer"-%}
   <script>function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"8711f68830983b188c2b19dbf359784a"})});</script>
-        </body>
+<script>// Read wishlist from localStorage
+function getWishlist() {
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e) { return []; }
+}
+
+// Update header counter
+function updateWishlistCount() {
+  const items = getWishlist();
+  const count = items.length;
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = count;
+    el.style.display = count > 0 ? 'flex' : 'none';
+  });
+}
+
+// Toggle wishlist add/remove
+async function toggleWishlist(productId, productHandle, button) {
+  let wishlist = getWishlist();
+  const id = productId.toString();
+
+  if (wishlist.includes(id)) {
+    // remove
+    wishlist = wishlist.filter(x => x !== id);
+    button.classList.remove('in-wishlist');
+  } else {
+    // add
+    wishlist.push(id);
+    button.classList.add('in-wishlist');
+
+    // optional: cache product data for wishlist page
+    try {
+      const res = await fetch(`/products/${productHandle}.js`);
+      if (res.ok) {
+        const data = await res.json();
+        const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
+        cache.set(id, data);
+        localStorage.setItem('wishlist_cache', JSON.stringify([...cache]));
+      }
+    } catch(e) {}
+  }
+
+  localStorage.setItem('wishlist', JSON.stringify(wishlist));
+  updateWishlistCount();
+}
+
+// Render wishlist page
+async function renderWishlistPage() {
+  const grid = document.getElementById('wishlist-grid');
+  if (!grid) return;
+
+  const wishlist = getWishlist();
+  if (!wishlist.length) {
+    grid.innerHTML = '<p>Your wishlist is empty.</p>';
+    return;
+  }
+
+  const cache = new Map(JSON.parse(localStorage.getItem('wishlist_cache') || '[]'));
+  const products = [];
+
+  for (const id of wishlist) {
+    const product = cache.get(id);
+    if (product) products.push(product);
+    // agar cache missing ho to /products/handle.js se fetch kar sakte ho
+  }
+
+  grid.innerHTML = products.map(p => `
+    <div class="wishlist-card">
+      <a href="/products/${p.handle}">
+        <img src="${p.featured_image}" alt="${p.title}">
+      </a>
+      <h3><a href="/products/${p.handle}">${p.title}</a></h3>
+      <p>${(p.price/100).toFixed(2)} ${Shopify.currency.active}</p>
+      <button class="card__badge--wishlist" 
+              data-product-id="${p.id}" 
+              data-product-handle="${p.handle}">
+        Remove
+      </button>
+    </div>
+  `).join('');
+}
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', () => {
+  updateWishlistCount();
+
+  // Bind product card buttons
+  document.body.addEventListener('click', e => {
+    const btn = e.target.closest('.card__badge--wishlist');
+    if (!btn) return;
+    e.preventDefault();
+    toggleWishlist(btn.dataset.productId, btn.dataset.productHandle, btn);
+  });
+
+  // Render wishlist page if on wishlist.json
+  renderWishlistPage();
+});
+
+// Sync across tabs
+window.addEventListener('storage', e => {
+  if (e.key === 'wishlist') updateWishlistCount();
+});
+</script>       
+
+
+
+
+</body>
 </html>
           
