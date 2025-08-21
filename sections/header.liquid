@@ -2572,111 +2572,47 @@
            
 <!-- Header Right Icons -->
 <div class="header__right">
+  
   <!-- Wishlist Icon with Counter -->
   <a href="/pages/wishlist" class="header__icon" title="Wishlist" style="position:relative;">
     <svg width="24" height="24">
       <use href="#icon-heart"></use>
     </svg>
-    <span class="wishlist-count" aria-hidden="true"></span>
-  </a>
-</div>
+    <span class="wishlist-count" 
+          style="display:none;position:absolute;top:-8px;right:-8px;
+                 background:#e74c3c;color:#fff;border-radius:50%;
+                 width:18px;height:18px;font-size:11px;font-weight:600;
+                 display:flex;align-items:center;justify-content:center;">
+    </span>
+    <script>
+      function readWishlist() {
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e) { return []; }
+}
 
-<style>
-  :root {
-    --wishlist-badge: 18px;           /* circle diameter for 1 digit */
-    --wishlist-padding-x: 6px;        /* extra width for 2+ digits */
-  }
+function formatWishlistCount(n) {
+  return n > 9 ? '9+' : String(n);
+}
 
-  .wishlist-count {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: #e74c3c;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1;
-    display: none;                    /* JS: show when count > 0 */
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    white-space: nowrap;
-    text-align: center;
-    z-index: 1;
-
-    /* base: pill that can grow; height fixed */
-    min-width: var(--wishlist-badge);
-    height: var(--wishlist-badge);
-    padding: 0 var(--wishlist-padding-x);
-    border-radius: 999px;
-  }
-
-  /* exactly 1 digit => perfect circle */
-  .wishlist-count.one-digit {
-    width: var(--wishlist-badge);
-    padding: 0;
-    border-radius: 50%;
-  }
-
-  /* optional tiny “bump” animation on change */
-  .wishlist-count.bump { animation: wishlist-bump 0.25s ease; }
-  @keyframes wishlist-bump {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-  }
-</style>
-
-<script>
-  // ---- Wishlist header counter (99+ format) ----
-  function readWishlist() {
-    try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
-    catch (e) { return []; }
-  }
-
-  function formatWishlistCount(n) {
-    // change to 9+ if you want a tighter cap
-    return n > 99 ? '99+' : String(n);
-  }
-
-  function updateHeaderWishlistCount() {
-    const count = readWishlist().length;
-    const text = formatWishlistCount(count);
-    const label = `Wishlist (${count})`;
-
-    document.querySelectorAll('.wishlist-count').forEach(el => {
-      // text + visibility
-      el.textContent = text;
-      el.style.display = count > 0 ? 'flex' : 'none';
-      el.setAttribute('title', label);
-
-      // accessibility for the parent link/button
-      const parent = el.closest('a,button');
-      if (parent) parent.setAttribute('aria-label', label);
-
-      // shape classes
-      el.classList.toggle('one-digit', /^\d$/.test(text));
-
-      // cute bump on change
-      el.classList.remove('bump');
-      // force reflow so bump retriggers
-      // eslint-disable-next-line no-unused-expressions
-      void el.offsetWidth;
-      el.classList.add('bump');
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
-
-  // cross-tab sync
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'wishlist') updateHeaderWishlistCount();
+function updateHeaderWishlistCount() {
+  const count = readWishlist().length;
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = formatWishlistCount(count);
+    el.style.display = count > 0 ? 'flex' : 'none';
+    // accessibility (screen readers)
+    const parent = el.closest('a,button') || el;
+    if (parent) parent.setAttribute('aria-label', `Wishlist (${count})`);
+    el.setAttribute('title', `Wishlist (${count})`);
   });
+}
 
-  // expose for manual calls after add/remove actions
-  window.updateWishlistCount = updateHeaderWishlistCount;
-</script>
+// call on load + after toggles + cross-tab sync
+document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
+window.addEventListener('storage', (e) => {
+  if (e.key === 'wishlist') updateHeaderWishlistCount();
+});
 
+    </script>
   </a>
 </div>
 
