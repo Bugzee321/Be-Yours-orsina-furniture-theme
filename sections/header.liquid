@@ -2613,7 +2613,7 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
   }
 
   /* Badge/Counter styles for both cart and wishlist */
-  .badge,
+  
   .cart-count-bubble,
   .wishlist-count {
     background-color: #e74c3c;
@@ -2694,10 +2694,6 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
     animation: iconSpin 1s linear infinite;
   }
 
-  @keyframes iconSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
 
   /* Focus states for cart and wishlist only */
   .header__icon[href="/cart"]:focus,
@@ -2793,6 +2789,25 @@ HEADER RIGHT ACTIONS — single container, right aligned, equal gaps, mobile fri
   });
 
   // optional: if you ever update cart count via JS, call normalizeCartBubble() again afterwards
+</script>
+<script>
+// Read wishlist from localStorage
+function getWishlist() {
+  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+  catch(e) { return []; }
+}
+
+// ✅ REPLACE this whole function:
+function updateWishlistCount() {
+  const items = getWishlist();
+  const count = items.length;
+  const badge = count > 2 ? '2+' : String(count); // 2+ logic
+
+  document.querySelectorAll('.wishlist-count').forEach(el => {
+    el.textContent = badge;
+    el.style.display = count > 0 ? 'flex' : 'none';
+  });
+}
 </script>
 
 <script>
