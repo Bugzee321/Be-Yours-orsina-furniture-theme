@@ -2570,98 +2570,166 @@
     </svg>
   </button>
            
-<!-- Header Right Icons -->
-<div class="header__right">
-  <!-- Wishlist Icon with Counter -->
-  <a href="/pages/wishlist" class="header__icon" title="Wishlist" aria-label="Wishlist">
-    <svg width="24" height="24" aria-hidden="true" focusable="false">
-      <use href="#icon-heart"></use>
-    </svg>
-    <span class="wishlist-count" aria-hidden="true"></span>
+<!-- Header Right Icons (same format on mobile & desktop) -->
+<div class="header__icons">
+  <!-- Search -->
+  <button class="icon-btn" type="button" aria-label="{{ 'general.search.search' | t }}" onclick="openSearchModal && openSearchModal()">
+    <svg width="24" height="24" aria-hidden="true" focusable="false"><use href="#icon-search"></use></svg>
+  </button>
+
+  <!-- Account -->
+  {% if customer %}
+    <a class="icon-btn" href="/account" aria-label="{{ 'layout.customer.account' | t }}">
+      <svg width="24" height="24" aria-hidden="true" focusable="false"><use href="#icon-user"></use></svg>
+    </a>
+  {% else %}
+    <a class="icon-btn" href="/account/login" aria-label="{{ 'layout.customer.log_in' | t }}">
+      <svg width="24" height="24" aria-hidden="true" focusable="false"><use href="#icon-user"></use></svg>
+    </a>
+  {% endif %}
+
+  <!-- Cart (with circle count) -->
+  <a class="icon-btn" href="/cart" aria-label="Cart">
+    <svg width="24" height="24" aria-hidden="true" focusable="false"><use href="#icon-cart"></use></svg>
+    <span class="icon-badge cart-count" aria-hidden="true">
+      {{ cart.item_count | default: 0 }}
+    </span>
+  </a>
+
+  <!-- Wishlist (with circle count) -->
+  <a class="icon-btn" href="/pages/wishlist" aria-label="Wishlist">
+    <svg width="24" height="24" aria-hidden="true" focusable="false"><use href="#icon-heart"></use></svg>
+    <span class="icon-badge wishlist-count" aria-hidden="true"></span>
   </a>
 </div>
-
 <style>
-  /* container: always flex, right aligned */
-  .header__right {
-    margin-left: auto;           /* push to right */
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  /* Container: always right-aligned & identical layout on all screens */
+  .header__icons{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:14px;
   }
 
-  /* icon wrapper */
-  .header__icon {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 0;
+  /* Every icon uses the same hit-area & positioning */
+  .icon-btn{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:40px;                /* good mobile tap target */
+    height:40px;
+    line-height:0;
+    text-decoration:none;
+    color:inherit;
   }
 
-  /* badge: always circle */
-  .wishlist-count {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #e74c3c;
-    color: #fff;
-    border-radius: 50%;          /* always circle */
-    width: 20px;
-    height: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    display: none;               /* JS toggles to flex */
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    box-sizing: border-box;
-    white-space: nowrap;
-    text-align: center;
+  /* Circle badge (cart & wishlist) */
+  .icon-badge{
+    position:absolute;
+    top:-6px;
+    right:-6px;
+    background:#e74c3c;
+    color:#fff;
+    border-radius:50%;
+    width:20px;
+    height:20px;
+    font-size:11px;
+    font-weight:700;
+    display:none;              /* JS toggles to flex */
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+    line-height:1;
+    box-sizing:border-box;
+    text-align:center;
   }
 
-  /* optional bump animation */
-  .wishlist-count.bump { animation: wishlist-bump 0.25s ease; }
-  @keyframes wishlist-bump {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-  }
+  /* Optional tiny bump animation on change */
+  .icon-badge.bump{ animation: badge-bump .25s ease; }
+  @keyframes badge-bump{ 0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)} }
+
+  /* Ensure same format on mobile & desktop (no media-query overrides needed) */
 </style>
-
 <script>
-  // ---- Wishlist header counter (9+ format) ----
-  function readWishlist() {
-    try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
-    catch { return []; }
-  }
+  // ===============================
+  // Identical behavior on mobile & desktop
+  // - Wishlist badge shows 9+ style
+  // - Cart badge shows 9+ style and refreshes on load
+  // ===============================
 
-  function formatWishlistCount(n) {
-    return n > 9 ? '9+' : String(n);
+  /* --- Helpers --- */
+  function readJSON(key, fallback){
+    try{ return JSON.parse(localStorage.getItem(key) ?? fallback); }catch{ return JSON.parse(fallback); }
   }
+  function formatCap9(n){ return n > 9 ? '9+' : String(n); }
 
-  function updateHeaderWishlistCount() {
+  /* --- WISHLIST COUNT --- */
+  function readWishlist(){ return readJSON('wishlist','[]'); }
+
+  function updateWishlistBadge(){
     const count = readWishlist().length;
     const label = `Wishlist (${count})`;
-
-    document.querySelectorAll('.wishlist-count').forEach(el => {
-      el.textContent = formatWishlistCount(count);
+    document.querySelectorAll('.wishlist-count').forEach(el=>{
+      el.textContent = formatCap9(count);
       el.style.display = count > 0 ? 'flex' : 'none';
-      el.setAttribute('title', label);
-
       const parent = el.closest('a,button');
       if (parent) parent.setAttribute('aria-label', label);
-
-      // bump effect
+      // bump
       el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
     });
   }
 
-  document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'wishlist') updateHeaderWishlistCount();
+  /* --- CART COUNT --- */
+  async function fetchCartCount(){
+    try{
+      const res = await fetch('/cart.js', { credentials:'same-origin' });
+      if(!res.ok) return null;
+      const cart = await res.json();
+      return (cart && typeof cart.item_count==='number') ? cart.item_count : null;
+    }catch{ return null; }
+  }
+
+  function renderCartBadge(n){
+    const count = Math.max(0, Number(n||0));
+    const label = `Cart (${count})`;
+    document.querySelectorAll('.cart-count').forEach(el=>{
+      el.textContent = formatCap9(count);
+      el.style.display = count > 0 ? 'flex' : 'none';
+      const parent = el.closest('a,button');
+      if (parent) parent.setAttribute('aria-label', label);
+      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    });
+  }
+
+  async function updateCartBadge(){
+    // Try live count; fall back to Liquid-rendered content already in span
+    const live = await fetchCartCount();
+    if (live === null){
+      // fallback: keep whatever Liquid rendered, but normalize 0/visibility
+      document.querySelectorAll('.cart-count').forEach(el=>{
+        const fallbackCount = parseInt(el.textContent,10) || 0;
+        renderCartBadge(fallbackCount);
+      });
+    } else {
+      renderCartBadge(live);
+    }
+  }
+
+  /* --- INIT + CROSS-TAB SYNC --- */
+  document.addEventListener('DOMContentLoaded', () => {
+    updateWishlistBadge();
+    updateCartBadge();
   });
-  window.updateWishlistCount = updateHeaderWishlistCount;
+
+  // If wishlist changes in another tab
+  window.addEventListener('storage', (e)=>{
+    if (e.key === 'wishlist') updateWishlistBadge();
+  });
+
+  // Expose to call after your add/remove code
+  window.updateWishlistCount = updateWishlistBadge;
+  window.updateCartCount = updateCartBadge;
 </script>
 
 
