@@ -343,33 +343,31 @@ window.addEventListener('storage', e => {
 </script>       
 <script>
 (() => {
-  // ==== LocalStorage keys ====
-  const LS_WISHLIST = 'wishlist';         // [id, id, ...] as strings
-  const LS_HANDLES  = 'wishlist_handles'; // [[id, handle], ...]
-  const LS_CACHE    = 'wishlist_cache';   // [[id, productJSON], ...]
+  // ---- LocalStorage keys ----
+  const LS_WISHLIST = 'wishlist';
+  const LS_HANDLES  = 'wishlist_handles';
+  const LS_CACHE    = 'wishlist_cache';
 
-  // ==== Safe JSON helpers ====
-  const safeParse = (str, fb) => { try { return JSON.parse(str); } catch { return fb; } };
-  const read  = (k, fb) => safeParse(localStorage.getItem(k), fb);
-  const write = (k, v)  => localStorage.setItem(k, JSON.stringify(v));
+  // ---- Helpers ----
+  const read = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? fb); } catch { return JSON.parse(fb); } };
+  const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-  // ==== Wishlist list helpers ====
-  const getList = () => (read(LS_WISHLIST, [])).map(String);
+  const getList = () => read(LS_WISHLIST, '[]').map(String);
   const setList = (arr) => {
+    // de-dupe + normalize
     const uniq = Array.from(new Set(arr.map(String)));
     write(LS_WISHLIST, uniq);
     return uniq;
   };
 
-  const inWishlist = (id, setObj) => (setObj || new Set(getList())).has(String(id));
-  const clampCount = (n) => (n > 9 ? '9+' : String(n));
+  const formatBadge = (n) => (n > 9 ? '9+' : String(n));
 
-  // ==== Header counter ====
-  function updateHeaderWishlistCount(){
-    const count = new Set(getList()).size;
+  function updateHeaderWishlistCount() {
+    const count = new Set(getList()).size; // safety against any old dups
     document.querySelectorAll('.wishlist-count').forEach((el) => {
-      el.textContent = count ? clampCount(count) : '';
-      el.style.display = count ? 'flex' : 'none';
+      el.textContent = formatBadge(count);
+      el.style.display = count > 0 ? 'flex' : 'none';
+
       const label = `Wishlist (${count})`;
       el.setAttribute('title', label);
       const parent = el.closest('a,button');
@@ -377,111 +375,80 @@ window.addEventListener('storage', e => {
     });
   }
 
-  // ==== Apply UI state to all heart buttons on page ====
-  function applyWishlistState(root = document){
-    const set = new Set(getList());
-    root.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
-      const id = (btn.dataset.productId || '').toString();
-      const active = id && set.has(id);
-      btn.classList.toggle('in-wishlist', !!active);
-      btn.classList.toggle('active', !!active); // if you style .active somewhere
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      btn.setAttribute('title', active ? 'Remove from Wishlist' : 'Add to Wishlist');
-    });
-  }
+  // ---- Toggle on heart buttons ----
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.card__badge--wishlist');
+    if (!btn) return;
 
-  // ==== Toggle logic (add/remove) ====
-  async function toggleWishlistById(id, handle){
-    id = (id || '').toString();
-    if (!id) return;
+    // prevent double taps
+    if (btn.dataset.loading === '1') return;
+    btn.dataset.loading = '1';
+
+    const id = (btn.dataset.productId ?? '').toString();
+    const handle = (btn.dataset.productHandle ?? '').toString();
+    if (!id) { btn.dataset.loading = ''; return; }
 
     let list = getList();
+    const maps  = new Map(read(LS_HANDLES, '[]')); // id -> handle
+    const cache = new Map(read(LS_CACHE,   '[]')); // id -> product JSON
+
     const exists = list.includes(id);
 
-    const maps  = new Map(read(LS_HANDLES, [])); // id -> handle
-    const cache = new Map(read(LS_CACHE,   [])); // id -> productJSON
-
     if (exists) {
-      // remove
-      list = list.filter(x => x !== id);
+      list = list.filter((x) => x !== id);
       maps.delete(id);
       cache.delete(id);
+      btn.classList.remove('in-wishlist', 'active');
+      btn.setAttribute('title', 'Add to Wishlist');
     } else {
-      // add
       list.push(id);
       if (handle) maps.set(id, handle);
+      btn.classList.add('in-wishlist', 'active');
+      btn.setAttribute('title', 'Remove from Wishlist');
 
-      // warm cache (optional but nice for wishlist page)
+      // warm cache so wishlist section turant dikhe
       if (handle) {
-        try{
+        try {
           const r = await fetch(`/products/${handle}.js`);
-          if (r.ok){
+          if (r.ok) {
             const data = await r.json();
             cache.set(id, data);
           }
-        } catch {/* ignore */}
+        } catch { /* ignore */ }
       }
     }
 
     write(LS_HANDLES, [...maps.entries()]);
     write(LS_CACHE,   [...cache.entries()]);
-    setList(list);
+    setList(list);               // save (de-duped)
+    updateHeaderWishlistCount(); // refresh header
 
-    // Update UI everywhere:
+    btn.dataset.loading = '');   // release guard
+  });
+
+  // ---- On load: set initial count + mark active buttons ----
+  document.addEventListener('DOMContentLoaded', () => {
     updateHeaderWishlistCount();
-    applyWishlistState();
-  }
 
-  // ==== Event delegation for clicks ====
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.card__badge--wishlist');
-    if (!btn) return;
-
-    // guard against double clicks
-    if (btn.dataset.loading === '1') return;
-    btn.dataset.loading = '1';
-
-    const id = (btn.dataset.productId || '').toString();
-    const handle = (btn.dataset.productHandle || '').toString();
-
-    toggleWishlistById(id, handle).finally(() => {
-      btn.dataset.loading = '';
+    const set = new Set(getList());
+    document.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
+      const id = (btn.dataset.productId ?? '').toString();
+      const inList = set.has(id);
+      btn.classList.toggle('in-wishlist', inList);
+      btn.classList.toggle('active', inList);
+      btn.setAttribute('title', inList ? 'Remove from Wishlist' : 'Add to Wishlist');
     });
   });
 
-  // ==== Init on load ====
-  document.addEventListener('DOMContentLoaded', () => {
-    updateHeaderWishlistCount();
-    applyWishlistState();
-  });
-
-  // ==== Cross-tab sync ====
+  // ---- Cross-tab sync ----
   window.addEventListener('storage', (e) => {
-    if (e.key === LS_WISHLIST) {
-      updateHeaderWishlistCount();
-      applyWishlistState();
-    }
+    if (e.key === LS_WISHLIST) updateHeaderWishlistCount();
   });
 
-  // ==== Optional: handle dynamically injected cards (infinite scroll, quick view) ====
-  const mo = new MutationObserver((muts) => {
-    for (const m of muts) {
-      m.addedNodes.forEach((node) => {
-        if (!(node instanceof Element)) return;
-        if (node.matches('.card__badge--wishlist') || node.querySelector?.('.card__badge--wishlist')) {
-          applyWishlistState(node);
-        }
-      });
-    }
-  });
-  mo.observe(document.documentElement, { childList: true, subtree: true });
-
-  // Expose if needed elsewhere
+  // optional: expose
   window.updateWishlistCount = updateHeaderWishlistCount;
-  window.applyWishlistState = applyWishlistState;
 })();
 </script>
-
 
 
 
