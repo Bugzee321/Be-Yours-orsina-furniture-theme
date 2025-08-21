@@ -2582,28 +2582,27 @@
 </div>
 
 <style>
-  <style>
-  /* Always circle badge */
+  /* Flexible badge: supports 9+, 99+, 100+ */
   .wishlist-count {
     position: absolute;
     top: -8px;
     right: -8px;
     background: #e74c3c;
     color: #fff;
-    border-radius: 50%;          /* perfect circle */
-    width: 20px;                 /* fixed circle */
-    height: 20px;
-    font-size: 11px;             /* smaller text fits 9+ */
+              /* pill shape */
+    min-width: 1px;               /* 1 digit = circle */
+    height: 18px;
+    padding: 0 5px;                /* space for 2+ chars like 9+ */
+    font-size: 11px;
     font-weight: 600;
-    display: none;               /* JS toggles to flex */
+    display: none;                 /* JS toggles to flex */
     align-items: center;
     justify-content: center;
     line-height: 1;
     box-sizing: border-box;
+    white-space: nowrap;           /* avoid wrapping '99+' */
     text-align: center;
-    white-space: nowrap;         /* prevent break of '9+' */
   }
-
 
   /* small "bump" animation on update (optional) */
   .wishlist-count.bump {
