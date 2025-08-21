@@ -338,65 +338,112 @@ window.addEventListener('storage', e => {
 });
 </script>       
 <script>
-function readLS(key, fallback){ try{return JSON.parse(localStorage.getItem(key)||fallback);}catch(e){return JSON.parse(fallback);} }
-function writeLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+(() => {
+  // ---- LocalStorage keys ----
+  const LS_WISHLIST = 'wishlist';
+  const LS_HANDLES  = 'wishlist_handles';
+  const LS_CACHE    = 'wishlist_cache';
 
-function updateHeaderWishlistCount(){
-  const count = (readLS('wishlist','[]')||[]).length;
-  document.querySelectorAll('.wishlist-count').forEach(el => {
-    el.textContent = String(count);
-    el.style.display = count > 0 ? 'flex' : 'none';
-  });
-}
+  // ---- Helpers ----
+  const read = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? fb); } catch { return JSON.parse(fb); } };
+  const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-// Heart click → add/remove + handle + cache save
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.card__badge--wishlist');
-  if (!btn) return;
+  const getList = () => read(LS_WISHLIST, '[]').map(String);
+  const setList = (arr) => {
+    // de-dupe + normalize
+    const uniq = Array.from(new Set(arr.map(String)));
+    write(LS_WISHLIST, uniq);
+    return uniq;
+  };
 
-  const id     = String(btn.dataset.productId || '');
-  const handle = String(btn.dataset.productHandle || '');
-  if (!id) return;
+  const formatBadge = (n) => (n > 9 ? '9+' : String(n));
 
-  let list    = readLS('wishlist','[]').map(String);
-  const maps  = new Map(readLS('wishlist_handles','[]')); // id -> handle
-  const cache = new Map(readLS('wishlist_cache','[]'));   // id -> product JSON
+  function updateHeaderWishlistCount() {
+    const count = new Set(getList()).size; // safety against any old dups
+    document.querySelectorAll('.wishlist-count').forEach((el) => {
+      el.textContent = formatBadge(count);
+      el.style.display = count > 0 ? 'flex' : 'none';
 
-  const exists = list.includes(id);
-
-  if (exists) {
-    list = list.filter(x => x !== id);
-    maps.delete(id);
-    cache.delete(id);
-    btn.classList.remove('in-wishlist','active');
-    btn.setAttribute('title','Add to Wishlist');
-  } else {
-    list.push(id);
-    if (handle) maps.set(id, handle);
-    btn.classList.add('in-wishlist','active');
-    btn.setAttribute('title','Remove from Wishlist');
-
-    // Warm cache so wishlist section turant dikhaye
-    try {
-      if (handle) {
-        const r = await fetch(`/products/${handle}.js`);
-        if (r.ok) {
-          const data = await r.json();
-          cache.set(id, data);
-        }
-      }
-    } catch(err){}
+      const label = `Wishlist (${count})`;
+      el.setAttribute('title', label);
+      const parent = el.closest('a,button');
+      if (parent) parent.setAttribute('aria-label', label);
+    });
   }
 
-  writeLS('wishlist', list);
-  writeLS('wishlist_handles', [...maps.entries()]);
-  writeLS('wishlist_cache',   [...cache.entries()]);
-  updateHeaderWishlistCount();
-});
+  // ---- Toggle on heart buttons ----
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.card__badge--wishlist');
+    if (!btn) return;
 
-// On load + cross-tab
-document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
-window.addEventListener('storage', (e)=>{ if(e.key==='wishlist') updateHeaderWishlistCount(); });
+    // prevent double taps
+    if (btn.dataset.loading === '1') return;
+    btn.dataset.loading = '1';
+
+    const id = (btn.dataset.productId ?? '').toString();
+    const handle = (btn.dataset.productHandle ?? '').toString();
+    if (!id) { btn.dataset.loading = ''; return; }
+
+    let list = getList();
+    const maps  = new Map(read(LS_HANDLES, '[]')); // id -> handle
+    const cache = new Map(read(LS_CACHE,   '[]')); // id -> product JSON
+
+    const exists = list.includes(id);
+
+    if (exists) {
+      list = list.filter((x) => x !== id);
+      maps.delete(id);
+      cache.delete(id);
+      btn.classList.remove('in-wishlist', 'active');
+      btn.setAttribute('title', 'Add to Wishlist');
+    } else {
+      list.push(id);
+      if (handle) maps.set(id, handle);
+      btn.classList.add('in-wishlist', 'active');
+      btn.setAttribute('title', 'Remove from Wishlist');
+
+      // warm cache so wishlist section turant dikhe
+      if (handle) {
+        try {
+          const r = await fetch(`/products/${handle}.js`);
+          if (r.ok) {
+            const data = await r.json();
+            cache.set(id, data);
+          }
+        } catch { /* ignore */ }
+      }
+    }
+
+    write(LS_HANDLES, [...maps.entries()]);
+    write(LS_CACHE,   [...cache.entries()]);
+    setList(list);               // save (de-duped)
+    updateHeaderWishlistCount(); // refresh header
+
+    btn.dataset.loading = '');   // release guard
+  });
+
+  // ---- On load: set initial count + mark active buttons ----
+  document.addEventListener('DOMContentLoaded', () => {
+    updateHeaderWishlistCount();
+
+    const set = new Set(getList());
+    document.querySelectorAll('.card__badge--wishlist').forEach((btn) => {
+      const id = (btn.dataset.productId ?? '').toString();
+      const inList = set.has(id);
+      btn.classList.toggle('in-wishlist', inList);
+      btn.classList.toggle('active', inList);
+      btn.setAttribute('title', inList ? 'Remove from Wishlist' : 'Add to Wishlist');
+    });
+  });
+
+  // ---- Cross-tab sync ----
+  window.addEventListener('storage', (e) => {
+    if (e.key === LS_WISHLIST) updateHeaderWishlistCount();
+  });
+
+  // optional: expose
+  window.updateWishlistCount = updateHeaderWishlistCount;
+})();
 </script>
 
 
