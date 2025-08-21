@@ -2572,47 +2572,74 @@
            
 <!-- Header Right Icons -->
 <div class="header__right">
-  
   <!-- Wishlist Icon with Counter -->
   <a href="/pages/wishlist" class="header__icon" title="Wishlist" style="position:relative;">
     <svg width="24" height="24">
       <use href="#icon-heart"></use>
     </svg>
-    <span class="wishlist-count" 
-          style="display:none;position:absolute;top:-8px;right:-8px;
-                 background:#e74c3c;color:#fff;border-radius:50%;
-                 width:18px;height:18px;font-size:11px;font-weight:600;
-                 display:flex;align-items:center;justify-content:center;">
-    </span>
-    <script>
-      function readWishlist() {
-  try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
-  catch(e) { return []; }
-}
+    <span class="wishlist-count" aria-hidden="true"></span>
+  </a>
+</div>
 
-function formatWishlistCount(n) {
-  return n > 9 ? '9+' : String(n);
-}
+<style>
+  /* Flexible badge: supports 9+, 99+ etc. */
+  .wishlist-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 999px;      /* pill */
+    min-width: 18px;           /* at least a small circle */
+    height: 18px;
+    padding: 0 5px;            /* space for '9+' */
+    font-size: 11px;
+    font-weight: 600;
+    display: none;             /* JS toggles to flex */
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-sizing: border-box;
+  }
+</style>
 
-function updateHeaderWishlistCount() {
-  const count = readWishlist().length;
-  document.querySelectorAll('.wishlist-count').forEach(el => {
-    el.textContent = formatWishlistCount(count);
-    el.style.display = count > 0 ? 'flex' : 'none';
-    // accessibility (screen readers)
-    const parent = el.closest('a,button') || el;
-    if (parent) parent.setAttribute('aria-label', `Wishlist (${count})`);
-    el.setAttribute('title', `Wishlist (${count})`);
+<script>
+  // ---- Wishlist header counter (9+ format) ----
+  function readWishlist() {
+    try { return JSON.parse(localStorage.getItem('wishlist') || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function formatWishlistCount(n) {
+    // 9+ cap; change to 99+ if you prefer
+    return n > 9 ? '9+' : String(n);
+  }
+
+  function updateHeaderWishlistCount() {
+    const count = readWishlist().length;
+    const label = `Wishlist (${count})`;
+
+    document.querySelectorAll('.wishlist-count').forEach(el => {
+      el.textContent = formatWishlistCount(count);
+      el.style.display = count > 0 ? 'flex' : 'none';
+      el.setAttribute('title', label);
+
+      // parent link/button ke liye accessible label
+      const parent = el.closest('a,button');
+      if (parent) parent.setAttribute('aria-label', label);
+    });
+  }
+
+  // Load pe update + cross-tab sync
+  document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'wishlist') updateHeaderWishlistCount();
   });
-}
 
-// call on load + after toggles + cross-tab sync
-document.addEventListener('DOMContentLoaded', updateHeaderWishlistCount);
-window.addEventListener('storage', (e) => {
-  if (e.key === 'wishlist') updateHeaderWishlistCount();
-});
+  // OPTIONAL: agar aap ke toggle ke baad ye call hota ho to perfect
+  window.updateWishlistCount = updateHeaderWishlistCount;
+</script>
 
-    </script>
   </a>
 </div>
 
