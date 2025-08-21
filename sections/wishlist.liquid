@@ -218,6 +218,21 @@
 })();
 </script>
 
+<script>
+  // ...same code as before...
+
+  async function fetchProductByHandle(handle) {
+    const res = await fetch('/products/' + handle + '.js');
+    if (!res.ok) {
+      console.warn('Wishlist fetch failed for handle:', handle, res.status);
+      throw new Error('Fetch failed');
+    }
+    return await res.json();
+  }
+
+  // ...rest same...
+</script>
+
 {% schema %}
 {
   "name": "Wishlist",
