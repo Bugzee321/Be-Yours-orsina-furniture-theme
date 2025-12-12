@@ -11,31 +11,16 @@
   "name": "t:sections.header-group.name",
   "type": "header",
   "sections": {
-    "custom_liquid_knUwnY": {
-      "type": "custom-liquid",
-      "disabled": true,
-      "custom_css": [
-        ".topbar {background: #a85a3b; text-align: center; color: #fff; padding: 8px;}"
-      ],
-      "name": "t:sections.custom-liquid.presets.name",
-      "settings": {
-        "custom_liquid": "<div class=\"topbar\"><span>Free Shipping on All Orders</span></div>",
-        "full_width": true,
-        "show_divider": false,
-        "padding_top": 0,
-        "padding_bottom": 0
-      }
-    },
     "announcement-bar": {
       "type": "announcement-bar",
       "blocks": {
         "announcement_HxVKr9": {
           "type": "announcement",
           "settings": {
-            "text": "FREE 2-4 Day Shipping on EVERYTHING after £49",
-            "text_on_mobile": "FREE 2-4 Day Shipping on EVERYTHING after £49",
-            "text_size": 15,
-            "link": ""
+            "text": "WELCOME TO WHIMSTALES STORE",
+            "text_on_mobile": "WELOME TO WHIMSTALES STORE",
+            "text_size": 12,
+            "link": "shopify://collections"
           }
         },
         "announcement_HRKhXj": {
@@ -63,16 +48,16 @@
         "announcement-bar-0"
       ],
       "settings": {
-        "only_homepage": false,
+        "only_homepage": true,
         "layout": "carousel",
-        "mobile_layout": "marquee",
+        "mobile_layout": "carousel",
         "autorotate": true,
         "autorotate_speed": 3,
         "show_navigation": true,
         "direction": "left",
-        "speed": 2.5,
-        "colors_text": "#f5f2ee",
-        "colors_background": "#a85a3b",
+        "speed": 1.9,
+        "colors_text": "#ffffff",
+        "colors_background": "#000000",
         "gradient_background": "",
         "padding_top": 0,
         "padding_bottom": 0
@@ -81,8 +66,6 @@
     "header": {
       "type": "header",
       "settings": {
-        "logo": "shopify://shop_images/Orsina-Black.png",
-        "mobile_logo": "shopify://shop_images/Orsina-Black_c22bfc6f-27dc-4c4b-9943-6582c6334cd7.png",
         "logo_height": 104,
         "mobile_logo_height": 72,
         "menu": "main-menu",
@@ -110,7 +93,6 @@
     }
   },
   "order": [
-    "custom_liquid_knUwnY",
     "announcement-bar",
     "header"
   ]
