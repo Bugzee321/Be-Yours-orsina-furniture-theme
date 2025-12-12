@@ -26,10 +26,10 @@
         "announcement_HRKhXj": {
           "type": "announcement",
           "settings": {
-            "text": "Welcome Offer: Get 10% Off When You Join Us",
-            "text_on_mobile": "Welcome Offer: Get 10% Off When You Join Us",
+            "text": "FREE SHIPPING DELIVERY",
+            "text_on_mobile": "FREE SHIPPING DELIVERY",
             "text_size": 15,
-            "link": ""
+            "link": "shopify://collections"
           }
         },
         "announcement-bar-0": {
