@@ -34,6 +34,8 @@
         "slide-0": {
           "type": "image",
           "settings": {
+            "image": "shopify://shop_images/Screenshot_2025-11-27_at_12.24.43_PM.png",
+            "image_mobile": "shopify://shop_images/Screenshot_2025-11-27_at_12.24.43_PM.png",
             "image_position": "center center",
             "text_box_position": "middle-left",
             "subheading": "On The Selective Products",
