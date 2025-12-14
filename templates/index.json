@@ -12,6 +12,26 @@
     "slideshow": {
       "type": "slideshow",
       "blocks": {
+        "9021044b-fc76-4e9f-a1fb-27f79860e249": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
+            "image_mobile": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
+            "image_position": "center center",
+            "text_box_position": "middle-left",
+            "subheading": "“Instantly Download a Beautifully Illustrated Story.",
+            "subheading_size": "h4",
+            "heading": "Accessories",
+            "heading_size": "h0",
+            "heading_tag": "h2",
+            "text": "“Turn Your Child Into the Hero of Their Own Story",
+            "text_size": "typeset",
+            "button_label": "Explore Now",
+            "button_link": "https://www.orsina.co.uk/collections/accessories",
+            "button_size": "medium",
+            "button_style_secondary": true
+          }
+        },
         "slide-0": {
           "type": "image",
           "settings": {
@@ -19,9 +39,9 @@
             "image_mobile": "shopify://shop_images/Screenshot_2025-11-27_at_12.24.43_PM.png",
             "image_position": "center center",
             "text_box_position": "top-left",
-            "subheading": "On The Selective Products",
+            "subheading": "Adventures Personalized Just for Your Little Hero!”",
             "subheading_size": "h4",
-            "heading": "WELCOME TO WHIMSTALES",
+            "heading": "“Unleash Magic & Imagination",
             "heading_size": "h0",
             "heading_tag": "h2",
             "text": "A World of Whimsy, Just for You\"",
@@ -51,32 +71,12 @@
             "button_size": "medium",
             "button_style_secondary": true
           }
-        },
-        "9021044b-fc76-4e9f-a1fb-27f79860e249": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
-            "image_mobile": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
-            "image_position": "center center",
-            "text_box_position": "middle-left",
-            "subheading": "“Instantly Download a Beautifully Illustrated Story.",
-            "subheading_size": "h4",
-            "heading": "Accessories",
-            "heading_size": "h0",
-            "heading_tag": "h2",
-            "text": "“Turn Your Child Into the Hero of Their Own Story",
-            "text_size": "typeset",
-            "button_label": "Explore Now",
-            "button_link": "https://www.orsina.co.uk/collections/accessories",
-            "button_size": "medium",
-            "button_style_secondary": true
-          }
         }
       },
       "block_order": [
+        "9021044b-fc76-4e9f-a1fb-27f79860e249",
         "slide-0",
-        "image_d7reUw",
-        "9021044b-fc76-4e9f-a1fb-27f79860e249"
+        "image_d7reUw"
       ],
       "settings": {
         "slideshow_type": "legacy",
