@@ -12,43 +12,24 @@
     "slideshow": {
       "type": "slideshow",
       "blocks": {
-        "image_mcJzYU": {
-          "type": "image",
-          "disabled": true,
-          "settings": {
-            "image_position": "center center",
-            "text_box_position": "middle-right",
-            "subheading": "shop our summer glassware edit",
-            "subheading_size": "h5",
-            "heading": "Sip into summer",
-            "heading_size": "h0",
-            "heading_tag": "h1",
-            "text": "",
-            "text_size": "typeset",
-            "button_label": "Explore Now",
-            "button_link": "shopify://collections/sip-into-summer",
-            "button_size": "medium",
-            "button_style_secondary": true
-          }
-        },
         "slide-0": {
           "type": "image",
           "settings": {
             "image": "shopify://shop_images/Screenshot_2025-11-27_at_12.24.43_PM.png",
             "image_mobile": "shopify://shop_images/Screenshot_2025-11-27_at_12.24.43_PM.png",
             "image_position": "center center",
-            "text_box_position": "middle-left",
+            "text_box_position": "top-left",
             "subheading": "On The Selective Products",
             "subheading_size": "h4",
-            "heading": "Up To 70% OFF",
+            "heading": "WELCOME TO WHIMSTALES",
             "heading_size": "h0",
             "heading_tag": "h2",
-            "text": "",
+            "text": "A World of Whimsy, Just for You\"",
             "text_size": "typeset2",
             "button_label": "Explore Now",
             "button_link": "shopify://collections/sale",
             "button_size": "medium",
-            "button_style_secondary": true
+            "button_style_secondary": false
           }
         },
         "image_d7reUw": {
@@ -90,33 +71,12 @@
             "button_size": "medium",
             "button_style_secondary": true
           }
-        },
-        "09f0051c-48a0-4da7-8422-abfb99a7cafc": {
-          "type": "image",
-          "disabled": true,
-          "settings": {
-            "image_position": "center center",
-            "text_box_position": "middle-right",
-            "subheading": "",
-            "subheading_size": "h4",
-            "heading": "Explore – Seating",
-            "heading_size": "h0",
-            "heading_tag": "h2",
-            "text": "",
-            "text_size": "typeset2",
-            "button_label": "Explore Now",
-            "button_link": "https://www.orsina.co.uk/collections/seating",
-            "button_size": "medium",
-            "button_style_secondary": true
-          }
         }
       },
       "block_order": [
-        "image_mcJzYU",
         "slide-0",
         "image_d7reUw",
-        "9021044b-fc76-4e9f-a1fb-27f79860e249",
-        "09f0051c-48a0-4da7-8422-abfb99a7cafc"
+        "9021044b-fc76-4e9f-a1fb-27f79860e249"
       ],
       "settings": {
         "slideshow_type": "legacy",
@@ -128,7 +88,7 @@
         "image_behavior": "none",
         "mobile_text_alignment": "left",
         "mobile_image_ratio": "300px",
-        "show_text_below": false,
+        "show_text_below": true,
         "colors_button_label": "#1a1b18",
         "colors_button_background": "#a85a3b",
         "colors_text": "#ffffff",
