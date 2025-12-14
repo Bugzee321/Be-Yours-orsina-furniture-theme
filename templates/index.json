@@ -54,6 +54,8 @@
         "image_d7reUw": {
           "type": "image",
           "settings": {
+            "image": "shopify://shop_images/Screenshot_2025-11-27_at_12.25.00_PM.png",
+            "image_mobile": "shopify://shop_images/Screenshot_2025-11-27_at_12.25.00_PM.png",
             "image_position": "center center",
             "text_box_position": "middle-left",
             "subheading": "INTRODUCING",
