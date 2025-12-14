@@ -101,6 +101,60 @@
         "padding_bottom": 0
       }
     },
+    "a45737d5-0625-4157-b48c-3f16c03f65e6": {
+      "type": "rich-text",
+      "blocks": {
+        "99f9fcc1-105d-452f-9e0d-c90cecc837d8": {
+          "type": "subheading",
+          "settings": {
+            "subheading": "FOLLOW US",
+            "subheading_size": "h3",
+            "secondary_color": false
+          }
+        },
+        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0": {
+          "type": "heading",
+          "disabled": true,
+          "settings": {
+            "heading": "@WHIMSTALES",
+            "heading_size": "h1",
+            "heading_tag": "h2"
+          }
+        },
+        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1": {
+          "type": "text",
+          "disabled": true,
+          "settings": {
+            "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>",
+            "text_size": "typeset2",
+            "secondary_color": false,
+            "highlight_phrases": "",
+            "highlight_style": "marker"
+          }
+        }
+      },
+      "block_order": [
+        "99f9fcc1-105d-452f-9e0d-c90cecc837d8",
+        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0",
+        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1"
+      ],
+      "settings": {
+        "text_alignment": "center",
+        "mobile_text_alignment": "center",
+        "horizontal_content": false,
+        "narrow": false,
+        "show_divider": false,
+        "use_custom_colors": false,
+        "colors_button_label": "#ffffff",
+        "colors_button_background": "#1a1b18",
+        "colors_text": "#212326",
+        "colors_background": "#ffffff",
+        "colors_highlight": "#bbff00",
+        "gradient_background": "",
+        "padding_top": 36,
+        "padding_bottom": 0
+      }
+    },
     "custom_liquid_tVjkQy": {
       "type": "custom-liquid",
       "disabled": true,
@@ -476,60 +530,6 @@
         "padding_bottom": 20
       }
     },
-    "a45737d5-0625-4157-b48c-3f16c03f65e6": {
-      "type": "rich-text",
-      "blocks": {
-        "99f9fcc1-105d-452f-9e0d-c90cecc837d8": {
-          "type": "subheading",
-          "settings": {
-            "subheading": "FOLLOW US",
-            "subheading_size": "h3",
-            "secondary_color": false
-          }
-        },
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0": {
-          "type": "heading",
-          "disabled": true,
-          "settings": {
-            "heading": "Talk about your brand",
-            "heading_size": "h1",
-            "heading_tag": "h2"
-          }
-        },
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1": {
-          "type": "text",
-          "disabled": true,
-          "settings": {
-            "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>",
-            "text_size": "typeset2",
-            "secondary_color": false,
-            "highlight_phrases": "",
-            "highlight_style": "marker"
-          }
-        }
-      },
-      "block_order": [
-        "99f9fcc1-105d-452f-9e0d-c90cecc837d8",
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0",
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1"
-      ],
-      "settings": {
-        "text_alignment": "center",
-        "mobile_text_alignment": "center",
-        "horizontal_content": false,
-        "narrow": false,
-        "show_divider": false,
-        "use_custom_colors": false,
-        "colors_button_label": "#ffffff",
-        "colors_button_background": "#1a1b18",
-        "colors_text": "#212326",
-        "colors_background": "#ffffff",
-        "colors_highlight": "#bbff00",
-        "gradient_background": "",
-        "padding_top": 36,
-        "padding_bottom": 0
-      }
-    },
     "multicolumn_dkk6f3": {
       "type": "multicolumn",
       "blocks": {
@@ -728,6 +728,7 @@
   },
   "order": [
     "slideshow",
+    "a45737d5-0625-4157-b48c-3f16c03f65e6",
     "custom_liquid_tVjkQy",
     "39393ad0-1176-433e-a99d-b81b2f21cdff",
     "collection_list_eKdRHD",
@@ -736,7 +737,6 @@
     "9c4a3754-cf4c-4f36-95ef-2d4eb20d82ab",
     "22ea4fc7-12f4-4c33-b720-f357af4da2fc",
     "6bbd22f2-ada1-404f-9822-66796ef57f76",
-    "a45737d5-0625-4157-b48c-3f16c03f65e6",
     "multicolumn_dkk6f3",
     "dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8",
     "450474b0-4064-4cc8-ace6-40a6260840db"
