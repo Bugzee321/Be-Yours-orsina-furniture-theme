@@ -104,14 +104,6 @@
     "a45737d5-0625-4157-b48c-3f16c03f65e6": {
       "type": "rich-text",
       "blocks": {
-        "99f9fcc1-105d-452f-9e0d-c90cecc837d8": {
-          "type": "subheading",
-          "settings": {
-            "subheading": "FOLLOW US",
-            "subheading_size": "h3",
-            "secondary_color": false
-          }
-        },
         "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0": {
           "type": "heading",
           "disabled": true,
@@ -121,11 +113,19 @@
             "heading_tag": "h2"
           }
         },
+        "99f9fcc1-105d-452f-9e0d-c90cecc837d8": {
+          "type": "subheading",
+          "settings": {
+            "subheading": "FOLLOW US",
+            "subheading_size": "h3",
+            "secondary_color": false
+          }
+        },
         "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1": {
           "type": "text",
           "disabled": true,
           "settings": {
-            "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>",
+            "text": "<p><br/>every story is crafted with a touch of magic and a whole lot of heart. We create personalized storybooks where your child becomes the hero<strong>,</strong> embarking on unforgettable adventures designed just for them.<br/><br/></p>",
             "text_size": "typeset2",
             "secondary_color": false,
             "highlight_phrases": "",
@@ -134,8 +134,8 @@
         }
       },
       "block_order": [
-        "99f9fcc1-105d-452f-9e0d-c90cecc837d8",
         "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0",
+        "99f9fcc1-105d-452f-9e0d-c90cecc837d8",
         "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1"
       ],
       "settings": {
