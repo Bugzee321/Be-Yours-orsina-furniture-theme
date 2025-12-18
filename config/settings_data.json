@@ -9,10 +9,10 @@
  */
 {
   "current": {
-    "colors_solid_button_labels": "#f5f2ee",
+    "colors_solid_button_labels": "#f3f3f3",
     "colors_accent": "#a85a3b",
-    "colors_background": "#f5f2ee",
-    "colors_text": "#565656",
+    "colors_background": "#bebebe",
+    "colors_text": "#000000",
     "colors_heading": "#565656",
     "colors_price": "#434343",
     "colors_sale_price": "#a85a3b",
