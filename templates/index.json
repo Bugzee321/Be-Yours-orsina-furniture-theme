@@ -19,12 +19,12 @@
             "image_mobile": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
             "image_position": "center center",
             "text_box_position": "middle-left",
-            "subheading": "“Instantly Download a Beautifully Illustrated Story.",
+            "subheading": "",
             "subheading_size": "h4",
-            "heading": "Accessories",
+            "heading": "Where Every Child Becomes the Hero of Their Own Story",
             "heading_size": "h0",
             "heading_tag": "h2",
-            "text": "“Turn Your Child Into the Hero of Their Own Story",
+            "text": "Whimsitales.com is an imaginative digital destination that transforms children’s dreams into beautifully personalized storybooks powered by artificial intelligence.",
             "text_size": "typeset",
             "button_label": "Explore Now",
             "button_link": "https://www.orsina.co.uk/collections/accessories",
@@ -101,23 +101,21 @@
         "padding_bottom": 0
       }
     },
-    "a45737d5-0625-4157-b48c-3f16c03f65e6": {
+    "rich_text_L4E3eV": {
       "type": "rich-text",
       "blocks": {
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0": {
+        "heading_NyY3Uy": {
           "type": "heading",
-          "disabled": true,
           "settings": {
-            "heading": "@WHIMSTALES",
-            "heading_size": "h1",
+            "heading": "@ WHIMISTALES",
+            "heading_size": "h0",
             "heading_tag": "h2"
           }
         },
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1": {
+        "text_bxMPaq": {
           "type": "text",
-          "disabled": true,
           "settings": {
-            "text": "",
+            "text": "<p>Whimsitales offering goes beyond simple entertainment it engages children’s creativity, encourages a love of reading, and nurtures emotional connection through storytelling. When a child sees their own name, hobbies, and personality traits woven into a narrative, the experience becomes more than a book; it becomes a<strong> </strong>cherished keepsake that can be revisited again and again.</p>",
             "text_size": "typeset2",
             "secondary_color": false,
             "highlight_phrases": "",
@@ -126,9 +124,11 @@
         }
       },
       "block_order": [
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-0",
-        "template--18278716408089__a45737d5-0625-4157-b48c-3f16c03f65e6-16831006724e25c914-1"
+        "heading_NyY3Uy",
+        "text_bxMPaq"
       ],
+      "disabled": true,
+      "name": "t:sections.rich-text.presets.name",
       "settings": {
         "text_alignment": "center",
         "mobile_text_alignment": "center",
@@ -143,210 +143,12 @@
         "colors_highlight": "#bbff00",
         "gradient_background": "",
         "padding_top": 36,
-        "padding_bottom": 0
-      }
-    },
-    "multicolumn_dkk6f3": {
-      "type": "multicolumn",
-      "blocks": {
-        "column_PNh3xA": {
-          "type": "column",
-          "settings": {
-            "title": "",
-            "title_size": "h3",
-            "text": "",
-            "button_label": "",
-            "button_link": "https://www.instagram.com/orsinahome/",
-            "button_style_secondary": false
-          }
-        },
-        "column_j8KNJr": {
-          "type": "column",
-          "settings": {
-            "title": "",
-            "title_size": "h3",
-            "text": "",
-            "button_label": "",
-            "button_link": "https://www.instagram.com/orsinahome/",
-            "button_style_secondary": false
-          }
-        },
-        "column_dzbaPX": {
-          "type": "column",
-          "settings": {
-            "title": "",
-            "title_size": "h3",
-            "text": "",
-            "button_label": "",
-            "button_link": "https://www.instagram.com/orsinahome/",
-            "button_style_secondary": false
-          }
-        }
-      },
-      "block_order": [
-        "column_PNh3xA",
-        "column_j8KNJr",
-        "column_dzbaPX"
-      ],
-      "settings": {
-        "image_ratio": "adapt",
-        "image_position": "center center",
-        "text_alignment": "center",
-        "show_divider": false,
-        "image_width": "full",
-        "columns_desktop": 3,
-        "open_in_new_tab": true,
-        "heading": "@ whimsitales",
-        "heading_size": "h0",
-        "heading_alignment": "center",
-        "heading_tag": "h2",
-        "mobile_text_alignment": "center",
-        "columns_mobile": "1",
-        "swipe_on_mobile": true,
-        "padding_top": 4,
-        "padding_bottom": 36
-      }
-    },
-    "dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8": {
-      "type": "gallery",
-      "blocks": {
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-0": {
-          "type": "image",
-          "settings": {
-            "image_position": "center center",
-            "subheading": "#interiors",
-            "subheading_size": "h4",
-            "heading": "",
-            "heading_size": "h3",
-            "link": "https://www.instagram.com/orsinahome",
-            "text_box_position": "bottom-center"
-          }
-        },
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-1": {
-          "type": "image",
-          "settings": {
-            "image_position": "center center",
-            "subheading": "#furniture",
-            "subheading_size": "h4",
-            "heading": "",
-            "heading_size": "h3",
-            "link": "https://www.instagram.com/orsinahome",
-            "text_box_position": "bottom-center"
-          }
-        },
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-2": {
-          "type": "image",
-          "settings": {
-            "image_position": "center center",
-            "subheading": "#accessories",
-            "subheading_size": "h4",
-            "heading": "",
-            "heading_size": "h3",
-            "link": "https://www.instagram.com/orsinahome",
-            "text_box_position": "bottom-center"
-          }
-        },
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-3": {
-          "type": "image",
-          "settings": {
-            "image_position": "center center",
-            "subheading": "#scottishinteriors",
-            "subheading_size": "h4",
-            "heading": "",
-            "heading_size": "h3",
-            "link": "https://www.instagram.com/orsinahome",
-            "text_box_position": "bottom-center"
-          }
-        },
-        "a825db3c-7155-49f1-bbc4-357ae11462cf": {
-          "type": "image",
-          "settings": {
-            "image_position": "center center",
-            "subheading": "#home",
-            "subheading_size": "h4",
-            "heading": "",
-            "heading_size": "h3",
-            "link": "https://www.instagram.com/orsinahome",
-            "text_box_position": "bottom-center"
-          }
-        }
-      },
-      "block_order": [
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-0",
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-1",
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-2",
-        "template--18278716408089__dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8-1683100742ab36ba00-3",
-        "a825db3c-7155-49f1-bbc4-357ae11462cf"
-      ],
-      "disabled": true,
-      "settings": {
-        "per_row": 5,
-        "spacing_images": 10,
-        "image_height": 350,
-        "apply_overlay": true,
-        "full_width": true,
-        "show_divider": false,
-        "heading": "@orsinahome",
-        "heading_size": "h2",
-        "heading_alignment": "center",
-        "heading_tag": "h2",
-        "columns_mobile": "1",
-        "swipe_on_mobile": true,
-        "mobile_image_height": 300,
-        "padding_top": 0,
-        "padding_bottom": 100
-      }
-    },
-    "450474b0-4064-4cc8-ace6-40a6260840db": {
-      "type": "featured-blog",
-      "blocks": {
-        "template--18278716408089__450474b0-4064-4cc8-ace6-40a6260840db-title-1": {
-          "type": "title",
-          "settings": {
-            "show_date": true,
-            "show_author": false,
-            "show_comment_count": false
-          }
-        },
-        "template--18278716408089__450474b0-4064-4cc8-ace6-40a6260840db-summary-1": {
-          "type": "summary",
-          "settings": {}
-        },
-        "template--18278716408089__450474b0-4064-4cc8-ace6-40a6260840db-read_more-1": {
-          "type": "read_more",
-          "settings": {}
-        }
-      },
-      "block_order": [
-        "template--18278716408089__450474b0-4064-4cc8-ace6-40a6260840db-title-1",
-        "template--18278716408089__450474b0-4064-4cc8-ace6-40a6260840db-summary-1",
-        "template--18278716408089__450474b0-4064-4cc8-ace6-40a6260840db-read_more-1"
-      ],
-      "disabled": true,
-      "settings": {
-        "blog": "news",
-        "post_limit": 3,
-        "show_view_all": true,
-        "show_divider": true,
-        "heading": "Blog posts",
-        "heading_size": "h1",
-        "heading_alignment": "left",
-        "heading_tag": "h2",
-        "columns_mobile": "1",
-        "swipe_on_mobile": true,
-        "show_image": true,
-        "image_ratio": "adapt",
-        "image_position": "center center",
-        "padding_top": 36,
         "padding_bottom": 36
       }
     }
   },
   "order": [
     "slideshow",
-    "a45737d5-0625-4157-b48c-3f16c03f65e6",
-    "multicolumn_dkk6f3",
-    "dfb30457-34b9-4fd3-aa43-fdd07bf9a9e8",
-    "450474b0-4064-4cc8-ace6-40a6260840db"
+    "rich_text_L4E3eV"
   ]
 }
