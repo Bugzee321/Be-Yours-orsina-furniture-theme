@@ -83,15 +83,6 @@
     "rich_text_L4E3eV": {
       "type": "rich-text",
       "blocks": {
-        "heading_NyY3Uy": {
-          "type": "heading",
-          "disabled": true,
-          "settings": {
-            "heading": "@ WHIMISTALES",
-            "heading_size": "h0",
-            "heading_tag": "h2"
-          }
-        },
         "text_bxMPaq": {
           "type": "text",
           "disabled": true,
@@ -102,11 +93,20 @@
             "highlight_phrases": "",
             "highlight_style": "marker"
           }
+        },
+        "heading_NyY3Uy": {
+          "type": "heading",
+          "disabled": true,
+          "settings": {
+            "heading": "@ WHIMISTALES",
+            "heading_size": "h0",
+            "heading_tag": "h2"
+          }
         }
       },
       "block_order": [
-        "heading_NyY3Uy",
-        "text_bxMPaq"
+        "text_bxMPaq",
+        "heading_NyY3Uy"
       ],
       "disabled": true,
       "name": "t:sections.rich-text.presets.name",
