@@ -88,7 +88,7 @@
           "settings": {
             "heading": "@ WHIMISTALES",
             "heading_size": "h0",
-            "heading_tag": "h2"
+            "heading_tag": "h6"
           }
         },
         "text_bxMPaq": {
@@ -183,13 +183,13 @@
       "settings": {
         "product": "personalized-magical-storybook",
         "layout": "media_first",
-        "full_width": true,
+        "full_width": false,
         "show_divider": false,
         "show_featured_media": false,
         "hide_variants": false,
         "enable_image_zoom": true,
         "enable_video_looping": false,
-        "image_ratio": "adapt_first",
+        "image_ratio": "adapt",
         "image_position": "center center",
         "enable_layered_images": false,
         "padding_top": 36,
