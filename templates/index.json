@@ -12,26 +12,6 @@
     "slideshow": {
       "type": "slideshow",
       "blocks": {
-        "9021044b-fc76-4e9f-a1fb-27f79860e249": {
-          "type": "image",
-          "settings": {
-            "image": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
-            "image_mobile": "shopify://shop_images/ChatGPT_Image_Nov_18_2025_02_29_53_PM.png",
-            "image_position": "center center",
-            "text_box_position": "middle-left",
-            "subheading": "",
-            "subheading_size": "h4",
-            "heading": "Create Your Child’s Story Today",
-            "heading_size": "h0",
-            "heading_tag": "h2",
-            "text": "Turn imagination into reality—visit Whimsitales and give your child a story where they are the star.",
-            "text_size": "typeset",
-            "button_label": "Explore Now",
-            "button_link": "https://www.orsina.co.uk/collections/accessories",
-            "button_size": "medium",
-            "button_style_secondary": true
-          }
-        },
         "slide-0": {
           "type": "image",
           "settings": {
@@ -41,10 +21,10 @@
             "text_box_position": "top-left",
             "subheading": "",
             "subheading_size": "h4",
-            "heading": "“Unleash Magic & Imagination",
+            "heading": "Welcome to Whimsitales",
             "heading_size": "h0",
             "heading_tag": "h2",
-            "text": "Adventures Personalized Just for Your Little Hero",
+            "text": "Whimsitales brings stories to life by placing children at the center of magical adventures, creating personalized storybooks that inspire imagination and joy.",
             "text_size": "typeset2",
             "button_label": "Explore Now",
             "button_link": "shopify://collections/sale",
@@ -74,7 +54,6 @@
         }
       },
       "block_order": [
-        "9021044b-fc76-4e9f-a1fb-27f79860e249",
         "slide-0",
         "image_d7reUw"
       ],
