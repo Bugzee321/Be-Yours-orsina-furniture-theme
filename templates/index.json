@@ -83,9 +83,16 @@
     "rich_text_L4E3eV": {
       "type": "rich-text",
       "blocks": {
+        "heading_NyY3Uy": {
+          "type": "heading",
+          "settings": {
+            "heading": "@ WHIMISTALES",
+            "heading_size": "h0",
+            "heading_tag": "h2"
+          }
+        },
         "text_bxMPaq": {
           "type": "text",
-          "disabled": true,
           "settings": {
             "text": "<p>Whimsitales offering goes beyond simple entertainment it engages children’s creativity, encourages a love of reading, and nurtures emotional connection through storytelling. When a child sees their own name, hobbies, and personality traits woven into a narrative, the experience becomes more than a book; it becomes a<strong> </strong>cherished keepsake that can be revisited again and again.</p>",
             "text_size": "typeset2",
@@ -93,22 +100,12 @@
             "highlight_phrases": "",
             "highlight_style": "marker"
           }
-        },
-        "heading_NyY3Uy": {
-          "type": "heading",
-          "disabled": true,
-          "settings": {
-            "heading": "@ WHIMISTALES",
-            "heading_size": "h0",
-            "heading_tag": "h2"
-          }
         }
       },
       "block_order": [
-        "text_bxMPaq",
-        "heading_NyY3Uy"
+        "heading_NyY3Uy",
+        "text_bxMPaq"
       ],
-      "disabled": true,
       "name": "t:sections.rich-text.presets.name",
       "settings": {
         "text_alignment": "center",
