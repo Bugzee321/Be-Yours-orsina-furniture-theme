@@ -72,7 +72,7 @@
         "colors_button_background": "#000000",
         "colors_text": "#ffffff",
         "colors_background": "#a85a3b",
-        "colors_overlay": "#252525",
+        "colors_overlay": "#000000",
         "colors_overlay_opacity": 16,
         "colors_navigation_text": "#ffffff",
         "colors_navigation_background": "#000000",
