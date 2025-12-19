@@ -74,7 +74,7 @@
         "enable_dropdown_menu": true,
         "recommended_collection": "",
         "recommended_title": "You May Also Like",
-        "recommended_products_count": 100,
+        "recommended_products_count": 75,
         "show_empty_cart_menu": true,
         "empty_cart_menu_type": "direct",
         "empty_cart_menu": "main-menu",
