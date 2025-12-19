@@ -84,7 +84,7 @@
         "cart_icon": "bag",
         "enable_transparent_header": false,
         "transparent_text_color": "#a85a3b",
-        "colors_text": "#333333",
+        "colors_text": "#000000",
         "colors_icons": "#282828",
         "colors_border": "#636657",
         "colors_background": "#f5f2ee",
