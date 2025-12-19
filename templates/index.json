@@ -68,14 +68,14 @@
         "mobile_text_alignment": "left",
         "mobile_image_ratio": "300px",
         "show_text_below": true,
-        "colors_button_label": "#1a1b18",
-        "colors_button_background": "#a85a3b",
+        "colors_button_label": "#ffffff",
+        "colors_button_background": "#000000",
         "colors_text": "#ffffff",
         "colors_background": "#a85a3b",
-        "colors_overlay": "#212326",
+        "colors_overlay": "#252525",
         "colors_overlay_opacity": 16,
         "colors_navigation_text": "#ffffff",
-        "colors_navigation_background": "#1a1b18",
+        "colors_navigation_background": "#000000",
         "padding_top": 0,
         "padding_bottom": 0
       }
