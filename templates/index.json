@@ -279,8 +279,9 @@
           "type": "testimonial",
           "settings": {
             "icon": "5",
-            "text": "<p>Add customer reviews and testimonials to showcase your store's happy customers.</p>",
-            "author": "Author"
+            "text": "<p><br/>I’m genuinely impressed by the level of care and expertise. It’s rare to find someone who combines creativity with such strong execution.<br/><br/></p>",
+            "image": "shopify://shop_images/0D5A1D6E-2510-40F5-809E-112ACEFC1956__png.jpg",
+            "author": "Jessica M."
           }
         },
         "testimonial_fXDEKa": {
