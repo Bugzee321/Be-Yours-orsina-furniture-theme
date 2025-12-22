@@ -297,16 +297,18 @@
           "type": "testimonial",
           "settings": {
             "icon": "5",
-            "text": "<p>Add customer reviews and testimonials to showcase your store's happy customers.</p>",
-            "author": "Author"
+            "text": "<p><br/>The process was incredibly easy, and the result exceeded my expectations. It’s amazing how personal and meaningful the story feels.<br/><br/></p>",
+            "image": "shopify://shop_images/FD46273F-0278-48C4-B1AA-7F27733C2A9D__png.jpg",
+            "author": "Oliver G."
           }
         },
         "testimonial_MYmCRJ": {
           "type": "testimonial",
           "settings": {
             "icon": "5",
-            "text": "<p>Add customer reviews and testimonials to showcase your store's happy customers.</p>",
-            "author": "Author"
+            "text": "<p><br/>Whimsitales sparked my child’s imagination like nothing else. Watching them recognize themselves in the story was priceless.<br/><br/>.</p>",
+            "image": "shopify://shop_images/24D283A3-EF2C-4A74-B335-AC91F7D8A9B6__png.jpg",
+            "author": "Jonathan R."
           }
         },
         "testimonial_nDz7Up": {
