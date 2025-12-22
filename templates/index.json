@@ -288,8 +288,9 @@
           "type": "testimonial",
           "settings": {
             "icon": "5",
-            "text": "<p>Add customer reviews and testimonials to showcase your store's happy customers.</p>",
-            "author": "Author"
+            "text": "<p><br/>If you’re looking for a unique and magical gift, Whimsitales is it. Thoughtful, enchanting, and unforgettable.<br/><br/>.</p>",
+            "image": "shopify://shop_images/1F0D4794-197F-4E97-90D1-E951907F1BF2__png.jpg",
+            "author": "Michael A."
           }
         },
         "testimonial_jnH8Fj": {
