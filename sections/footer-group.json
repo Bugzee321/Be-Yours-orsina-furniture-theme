@@ -37,7 +37,7 @@
         "footer .accordion__title {font-size: 1.2rem !important;}"
       ],
       "settings": {
-        "show_divider": true,
+        "show_divider": false,
         "newsletter_enable": false,
         "newsletter_heading": "",
         "newsletter_text": "",
