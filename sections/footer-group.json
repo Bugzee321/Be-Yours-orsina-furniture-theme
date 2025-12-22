@@ -13,28 +13,6 @@
   "sections": {
     "footer": {
       "type": "footer",
-      "blocks": {
-        "b35a924f-b84d-4e18-a34a-72bc67550453": {
-          "type": "image",
-          "settings": {
-            "image_width": 165,
-            "alignment": "left",
-            "link": "https://orsina.co.uk/",
-            "text": "At Orsina, we’re all about helping you create a home you’ll love. From furniture and decor to kitchen and bath, we’ve got what you need to make it yours. We believe every home has a story, let’s make it happen!"
-          }
-        },
-        "text_n9BRbf": {
-          "type": "text",
-          "settings": {
-            "heading": "The Important Stuff",
-            "subtext": "<p><a href=\"/blogs/news\" title=\"News\">Inspiration</a></p><p><a href=\"/pages/faqs\" title=\"faqs\">FAQs</a></p><p><a href=\"https://www.orsina.co.uk/policies/Privacy-policy\" target=\"_blank\" title=\"https://www.orsina.co.uk/policies/Privacy-policy\">Privacy Policy</a></p><p><a href=\"https://www.orsina.co.uk/policies/terms-of-service\" target=\"_blank\" title=\"https://www.orsina.co.uk/policies/terms-of-service\">Terms & Condition</a></p><p><a href=\"/policies/refund-policy\" target=\"_blank\" title=\"Refund Policy\">Return and Refund Policy</a></p><p><a href=\"https://affiliates.orsina.co.uk/\" title=\"https://affiliates.orsina.co.uk/\">Become an Affiliate</a></p>"
-          }
-        }
-      },
-      "block_order": [
-        "b35a924f-b84d-4e18-a34a-72bc67550453",
-        "text_n9BRbf"
-      ],
       "custom_css": [
         "footer .accordion__title {font-size: 1.2rem !important;}"
       ],
