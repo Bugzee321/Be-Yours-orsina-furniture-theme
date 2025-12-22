@@ -13,14 +13,34 @@
   "sections": {
     "footer": {
       "type": "footer",
+      "blocks": {
+        "text_epmhj3": {
+          "type": "text",
+          "settings": {
+            "heading": "",
+            "subtext": "<h4>Registered Address</h4><p>Compass Business Center, Unit FDCW0653 Al Shohada Road, Al Hamra Industrial Zone-FZ Ras Al Khaimah, United Arab Emirates</p><p>Issued by Ras Al Khaimah Economic Zone Authority - Valid: 18 Mar 2025 – 17 Mar 2026 -Ref No: 1315200-ljUU-IK9h-64310947</p>"
+          }
+        },
+        "text_YcfxtC": {
+          "type": "text",
+          "settings": {
+            "heading": "",
+            "subtext": "<h4>Shopme FZ-LLC</h4><p>License No: 47019695 · Freezone Company (FZ-LLC)</p><p>Activity: Software House</p><p>Manager: Hossam Ahmed Mohamed Hassan Abbas</p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_epmhj3",
+        "text_YcfxtC"
+      ],
       "custom_css": [
         "footer .accordion__title {font-size: 1.2rem !important;}"
       ],
       "settings": {
         "show_divider": true,
-        "newsletter_enable": true,
-        "newsletter_heading": "Exclusive benefits",
-        "newsletter_text": "<p>Sign Up to Get an Instant 10% OFF on Your First Order!</p>",
+        "newsletter_enable": false,
+        "newsletter_heading": "",
+        "newsletter_text": "",
         "return_url": "",
         "enable_follow_on_shop": true,
         "show_social": true,
